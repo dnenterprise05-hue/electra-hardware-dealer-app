@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "903842582798",
+    "project_id": "electra-hardware",
+    "storage_bucket": "electra-hardware.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:903842582798:android:43b2cfe0df28055261075f",
+        "android_client_info": {
+          "package_name": "com.electrahardware.electra_hardware"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDl6Gn1LsGetlLi2-aQaVxWPQVk6feNXyM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,1 @@
+{"flutter":{"platforms":{"dart":{"lib/firebase_options.dart":{"projectId":"electra-hardware","configurations":{"android":"1:903842582798:android:43b2cfe0df28055261075f"}}},"android":{"default":{"projectId":"electra-hardware","appId":"1:903842582798:android:43b2cfe0df28055261075f","fileOutput":"android/app/google-services.json"}}}}}
