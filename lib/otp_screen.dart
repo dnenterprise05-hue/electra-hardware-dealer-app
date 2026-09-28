@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pinput/pinput.dart';
 import 'dashboard_screen.dart';
 import 'services/dealer_service.dart';
@@ -44,16 +45,51 @@ class _OtpScreenState extends State<OtpScreen> {
       // Resolve the dealer by the authenticated mobile number.
       // The Admin Panel uses auto-generated dealer document IDs, so the
       // document ID can NOT be assumed to equal the Firebase Auth UID.
+      // A Firestore/network failure must never authorize the dealer.
       final user = FirebaseAuth.instance.currentUser;
-      final dealerDoc = await DealerService.findDealerByMobile(
-        DealerService.normalizeMobile(user?.phoneNumber),
-      );
+
+      bool dealerLookupFailed = false;
+      DocumentSnapshot<Map<String, dynamic>>? dealerDoc;
+      try {
+        dealerDoc = await DealerService.findDealerByMobile(
+          DealerService.normalizeMobile(user?.phoneNumber),
+        );
+      } catch (_) {
+        dealerLookupFailed = true;
+      }
 
       if (!mounted) return;
 
-      if (dealerDoc == null) {
-        // Unknown number: do not allow proceeding to the Dashboard.
-        // Sign out so no stray authenticated session remains behind.
+      if (dealerLookupFailed || dealerDoc == null) {
+        // Unknown number or failed lookup: do not allow proceeding to
+        // the Dashboard. Sign out so no stray session remains behind.
+        await FirebaseAuth.instance.signOut();
+        DealerService.clearSession();
+
+        if (!mounted) return;
+
+        setState(() {
+          loading = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              dealerLookupFailed
+                  ? "Could not verify dealer. Please check your connection and try again."
+                  : "Dealer account not found. Please contact Electra Hardware.",
+            ),
+          ),
+        );
+        return;
+      }
+
+      // Active-dealer gate: only isActive == true may proceed.
+      // A missing or false isActive is treated as NOT authorized.
+      // The dealer document itself is never modified here.
+      final dealerData = dealerDoc.data() ?? <String, dynamic>{};
+
+      if (dealerData["isActive"] != true) {
         await FirebaseAuth.instance.signOut();
         DealerService.clearSession();
 
@@ -66,18 +102,19 @@ class _OtpScreenState extends State<OtpScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
-              "Dealer Not Found. Please contact Electra Hardware to register your number.",
+              "Dealer account is inactive. Please contact Electra Hardware.",
             ),
           ),
         );
         return;
       }
 
-      // Dealer found: remember the actual Firestore document ID so every
-      // dealer lookup in this session uses it instead of the Auth UID.
+      // Dealer found and active: remember the actual Firestore document ID
+      // so every dealer lookup in this session uses it instead of the
+      // Auth UID.
       DealerService.setSession(
         dealerDoc.id,
-        dealerDoc.data() ?? <String, dynamic>{},
+        dealerData,
       );
 
       debugPrint("UID: ${FirebaseAuth.instance.currentUser?.uid}");
