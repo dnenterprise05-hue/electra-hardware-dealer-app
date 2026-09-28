@@ -233,110 +233,148 @@ class _CartScreenState extends State<CartScreen> {
                           child: ElevatedButton.icon(
                             onPressed: () async {
 
-final counterRef = FirebaseFirestore.instance
-    .collection("counters")
-    .doc("orders");
+                              // ---- 1. Dealer safety: fail fast before touching the counter.
+                              // Uses the dealer identity/session from the OTP login gate.
+                              final user =
+                                  FirebaseAuth.instance.currentUser;
 
-final counterSnapshot = await counterRef.get();
+                              final dealerDoc =
+                                  await DealerService.getDealerDoc();
 
-int lastNumber = 0;
+                              if (dealerDoc == null ||
+                                  !dealerDoc.exists) {
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      "Dealer Not Found. Please login again.",
+                                    ),
+                                  ),
+                                );
+                                return;
+                              }
 
-if (counterSnapshot.exists) {
-  lastNumber = counterSnapshot["lastNumber"] ?? 0;
-}
+                              final dealerData = dealerDoc.data() ??
+                                  <String, dynamic>{};
 
-lastNumber++;
+                              // ---- 2. Mobile normalization: exactly 10 digits, validated.
+                              // Auth number first, dealer master record as fallback.
+                              final mobile10 =
+                                  DealerService.normalizeMobile10(
+                                        user?.phoneNumber,
+                                      ) ??
+                                      DealerService.normalizeMobile10(
+                                        dealerData["mobile"]?.toString(),
+                                      );
 
-await counterRef.set(
-  {
-    "lastNumber": lastNumber,
-  },
-  SetOptions(merge: true),
-);
-  final user = FirebaseAuth.instance.currentUser;
+                              if (mobile10 == null) {
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      "Invalid dealer mobile number. Please login again.",
+                                    ),
+                                  ),
+                                );
+                                return;
+                              }
 
-  // Resolve the dealer without assuming the document ID equals the
-  // Firebase Auth UID (Admin dealer documents use auto-generated IDs).
-  // Never crash here: a missing dealer shows an error instead.
-  final dealerDoc = await DealerService.getDealerDoc();
+                              try {
+                                // ---- 3. Transactional order counter.
+                                // Atomic: simultaneous submissions cannot
+                                // allocate the same sequence number.
+                                final counterRef = FirebaseFirestore.instance
+                                    .collection("counters")
+                                    .doc("orders");
 
-  if (dealerDoc == null || !dealerDoc.exists) {
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          "Dealer Not Found. Please login again.",
-        ),
-      ),
-    );
-    return;
-  }
+                                final int orderSeq =
+                                    await FirebaseFirestore.instance
+                                        .runTransaction((transaction) async {
+                                  final snapshot =
+                                      await transaction.get(counterRef);
 
-  final dealerData = dealerDoc.data() ?? <String, dynamic>{};
+                                  int lastNumber = 0;
+                                  if (snapshot.exists) {
+                                    final raw = snapshot
+                                        .data()?["lastNumber"];
+                                    if (raw is int) {
+                                      lastNumber = raw;
+                                    } else if (raw is num) {
+                                      lastNumber = raw.toInt();
+                                    }
+                                  }
 
-  debugPrint("ORDER UID : ${user?.uid}");
-debugPrint("ORDER MOBILE : ${user?.phoneNumber}");
+                                  final next = lastNumber + 1;
+                                  transaction.set(
+                                    counterRef,
+                                    {"lastNumber": next},
+                                    SetOptions(merge: true),
+                                  );
+                                  return next;
+                                });
 
-final orderRef = FirebaseFirestore.instance
-    .collection("orders")
-    .doc();
+                                final orderNo =
+                                    "EH-${DateFormat("yyyyMMdd").format(DateTime.now())}-${orderSeq.toString().padLeft(4, '0')}";
 
-await orderRef.set({
+                                debugPrint(
+                                    "ORDER UID : ${user?.uid}");
+                                debugPrint("ORDER MOBILE : $mobile10");
 
-  "dealerMobile": user?.phoneNumber ?? "",
+                                final orderRef = FirebaseFirestore.instance
+                                    .collection("orders")
+                                    .doc();
 
-  "dealerUid": user?.uid ?? "",
-  "dealerName": dealerData["firmName"],
+                                await orderRef.set({
+                                  "dealerMobile": mobile10,
+                                  "dealerUid": user?.uid ?? "",
+                                  "dealerName":
+                                      dealerData["firmName"] ?? "",
+                                  "dealerCity": dealerData["city"] ?? "",
+                                  "orderDocId": orderRef.id,
+                                  "orderNo": orderNo,
+                                  "date": DateFormat("dd-MM-yyyy")
+                                      .format(DateTime.now()),
+                                  "time": DateFormat("hh:mm a")
+                                      .format(DateTime.now()),
+                                  "createdAt":
+                                      FieldValue.serverTimestamp(),
+                                  "status": "Pending",
+                                  "products": items.map((item) {
+                                    return {
+                                      "modelNo": item.modelNo,
+                                      "finish": item.finish,
+                                      "imageUrl": item.imageUrl,
+                                      "quantities": item.quantities,
+                                    };
+                                  }).toList(),
+                                });
 
-"dealerCity": dealerData["city"],
-  "orderDocId": orderRef.id,
+                                CartService.clearCart();
 
-  "orderNo":
-    "EH-${DateFormat("yyyyMMdd").format(DateTime.now())}-${lastNumber.toString().padLeft(4, '0')}",
+                                if (!context.mounted) return;
 
-  "date": DateFormat(
-    "dd-MM-yyyy",
-  ).format(DateTime.now()),
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      "Order Submitted\nOrder No : $orderNo",
+                                    ),
+                                  ),
+                                );
+                              } catch (_) {
+                                // Never crash, never leave a partial order,
+                                // and keep the cart intact on failure.
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      "Order submission failed. Please try again.",
+                                    ),
+                                  ),
+                                );
+                                return;
+                              }
 
-  "time": DateFormat(
-    "hh:mm a",
-  ).format(DateTime.now()),
-
-  "createdAt": FieldValue.serverTimestamp(),
-
-  "status": "Pending",
-
-  "products": items.map((item) {
-
-    return {
-
-      "modelNo": item.modelNo,
-
-      "finish": item.finish,
-
-      "imageUrl": item.imageUrl,
-
-      "quantities": item.quantities,
-
-    };
-
-  }).toList(),
-
-});
-
-  CartService.clearCart();
-
-  if (!context.mounted) return;
-
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-  content: Text(
-    "Order Submitted\nOrder No : EH-${DateFormat("yyyyMMdd").format(DateTime.now())}-${lastNumber.toString().padLeft(4, '0')}",
-  ),
-),
-  );
-
-  setState(() {});
+                              if (context.mounted) setState(() {});
 
 },
                             style: ElevatedButton.styleFrom(

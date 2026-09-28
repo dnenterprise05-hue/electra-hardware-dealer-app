@@ -41,6 +41,16 @@ class DealerService {
     return digits;
   }
 
+  /// Strict 10-digit normalization for order writes.
+  /// Removes all non-digits; keeps the last 10 digits when longer.
+  /// Returns null when fewer than 10 digits remain (invalid number).
+  static String? normalizeMobile10(String? phone) {
+    if (phone == null) return null;
+    final digits = phone.replaceAll(RegExp(r'[^0-9]'), '');
+    if (digits.length < 10) return null;
+    return digits.substring(digits.length - 10);
+  }
+
   /// Finds the dealer document by normalized 10-digit mobile number.
   /// Returns null when no dealer exists for the number.
   static Future<DocumentSnapshot<Map<String, dynamic>>?> findDealerByMobile(
