@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'place_order_screen.dart';
+import 'services/dealer_service.dart';
 import 'my_orders_screen.dart';
 import 'contact_us_screen.dart';
 import 'profile_screen.dart';
@@ -12,7 +12,25 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
+    // Dealer identity comes from the mobile-based lookup done at OTP login.
+    // Admin dealer documents use auto-generated IDs, so the document ID
+    // can NOT be assumed to equal the Firebase Auth UID.
+    final dealerDocId = DealerService.dealerDocId;
+
+    if (dealerDocId == null || dealerDocId.isEmpty) {
+      return Scaffold(
+        backgroundColor: Colors.grey.shade100,
+        body: const Center(
+          child: Text(
+            "Dealer Not Found",
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
@@ -20,7 +38,7 @@ class DashboardScreen extends StatelessWidget {
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
             .collection("dealers")
-            .doc(user!.uid)
+            .doc(dealerDocId)
             .snapshots(),
 
         builder: (context, snapshot) {
@@ -48,6 +66,12 @@ class DashboardScreen extends StatelessWidget {
           final dealer =
               snapshot.data!.data()
                   as Map<String, dynamic>;
+
+          // Tolerate the Admin dealer schema: `gstNumber` instead of `gst`,
+          // and possibly missing city/state.
+          final location = DealerService.locationOf(dealer);
+          final gst = DealerService.gstOf(dealer);
+
                             return Column(
             children: [
 
@@ -112,7 +136,7 @@ class DashboardScreen extends StatelessWidget {
                       const SizedBox(height: 8),
 
                       Text(
-                        "📍 ${dealer["city"]}, ${dealer["state"]}",
+                        location.isEmpty ? "📍 —" : "📍 $location",
                         style: const TextStyle(
                           fontSize: 16,
                           color: Colors.black54,
@@ -122,7 +146,7 @@ class DashboardScreen extends StatelessWidget {
                       const SizedBox(height: 6),
 
                       Text(
-                        "📄 GSTIN : ${dealer["gst"]}",
+                        "📄 GSTIN : $gst",
                         style: const TextStyle(
                           fontSize: 15,
                           color: Colors.black54,

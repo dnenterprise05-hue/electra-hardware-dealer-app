@@ -1,13 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'services/dealer_service.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
+    // Dealer identity comes from the mobile-based lookup done at OTP login
+    // (Admin dealer documents use auto-generated IDs, not the Auth UID).
+    final dealerDocId = DealerService.dealerDocId;
+
+    if (dealerDocId == null || dealerDocId.isEmpty) {
+      return Scaffold(
+        backgroundColor: Colors.grey.shade100,
+        appBar: AppBar(
+          title: const Text("Profile"),
+          backgroundColor: Colors.red,
+          foregroundColor: Colors.white,
+        ),
+        body: const Center(
+          child: Text("Dealer Not Found"),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
@@ -21,7 +38,7 @@ class ProfileScreen extends StatelessWidget {
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
             .collection("dealers")
-            .doc(user!.uid)
+            .doc(dealerDocId)
             .snapshots(),
 
         builder: (context, snapshot) {
@@ -97,7 +114,7 @@ class ProfileScreen extends StatelessWidget {
                         profileTile(
                           Icons.receipt_long,
                           "GST Number",
-                          dealer["gst"] ?? "",
+                          DealerService.gstOf(dealer),
                         ),
 
                         const Divider(),
@@ -105,7 +122,7 @@ class ProfileScreen extends StatelessWidget {
                         profileTile(
                           Icons.location_on,
                           "Address",
-                          "${dealer["address"]}, ${dealer["city"]}, ${dealer["state"]}",
+                          DealerService.addressOf(dealer),
                         ),
 
                         const Divider(),

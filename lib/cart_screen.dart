@@ -6,6 +6,7 @@ import 'dart:math';
 
 import 'models/cart_item.dart';
 import 'services/cart_service.dart';
+import 'services/dealer_service.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -253,13 +254,26 @@ await counterRef.set(
   SetOptions(merge: true),
 );
   final user = FirebaseAuth.instance.currentUser;
-  final dealerDoc = await FirebaseFirestore.instance
-    .collection("dealers")
-    .doc(user!.uid)
-    .get();
 
-final dealerData = dealerDoc.data()!;
-  
+  // Resolve the dealer without assuming the document ID equals the
+  // Firebase Auth UID (Admin dealer documents use auto-generated IDs).
+  // Never crash here: a missing dealer shows an error instead.
+  final dealerDoc = await DealerService.getDealerDoc();
+
+  if (dealerDoc == null || !dealerDoc.exists) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          "Dealer Not Found. Please login again.",
+        ),
+      ),
+    );
+    return;
+  }
+
+  final dealerData = dealerDoc.data() ?? <String, dynamic>{};
+
   debugPrint("ORDER UID : ${user?.uid}");
 debugPrint("ORDER MOBILE : ${user?.phoneNumber}");
 
