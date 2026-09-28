@@ -39,6 +39,8 @@ class _OtpScreenState extends State<OtpScreen> {
       await FirebaseAuth.instance.signInWithCredential(
         credential,
       );
+      debugPrint("UID: ${FirebaseAuth.instance.currentUser?.uid}");
+      debugPrint("Mobile: ${FirebaseAuth.instance.currentUser?.phoneNumber}");
       await FavouriteService.instance.loadFavourites();
 
       if (!mounted) return;

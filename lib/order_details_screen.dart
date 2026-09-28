@@ -31,7 +31,8 @@ Color getStatusColor(String status) {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(order["orderNo"] ?? "Order Details"),
+        title: const Text("Order Details"),
+centerTitle: true,
         backgroundColor: Colors.red,
         foregroundColor: Colors.white,
       ),
@@ -57,40 +58,76 @@ Color getStatusColor(String status) {
 
                 children: [
 
-                  Text(
-                    "Order No : ${order["orderNo"] ?? "-"}",
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  Row(
+                  Column(
+  crossAxisAlignment: CrossAxisAlignment.start,
   children: [
 
     const Text(
-      "Status : ",
+      "ORDER DETAILS",
       style: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.bold,
+        fontSize: 13,
+        color: Colors.grey,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 1,
       ),
     ),
 
+    const SizedBox(height: 14),
+
+    Row(
+      children: [
+
+        const Icon(
+          Icons.receipt_long,
+          color: Colors.red,
+        ),
+
+        const SizedBox(width: 8),
+
+        Expanded(
+          child: Text(
+            order["orderNo"] ?? "-",
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+
+      ],
+    ),
+
+    const SizedBox(height: 18),
+
+    Row(
+      children: [
+
+        Expanded(
+          child: Text(
+            "📅 ${order["date"]}",
+            style: const TextStyle(fontSize: 15),
+          ),
+        ),
+
+        Text(
+          "🕒 ${order["time"]}",
+          style: const TextStyle(fontSize: 15),
+        ),
+
+      ],
+    ),
+
+    const SizedBox(height: 18),
+
     Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: 6,
+        horizontal: 14,
+        vertical: 8,
       ),
-
       decoration: BoxDecoration(
-        color: getStatusColor(
-          order["status"],
-        ),
+        color: getStatusColor(order["status"]),
         borderRadius: BorderRadius.circular(30),
       ),
-
       child: Text(
         order["status"],
         style: const TextStyle(
@@ -102,20 +139,6 @@ Color getStatusColor(String status) {
 
   ],
 ),
-
-                  const SizedBox(height: 6),
-
-                  Text(
-                    "Date : ${order["date"]}",
-                    style: const TextStyle(fontSize: 16),
-                  ),
-
-                  const SizedBox(height: 6),
-
-                  Text(
-                    "Time : ${order["time"]}",
-                    style: const TextStyle(fontSize: 16),
-                  ),
                 ],
               ),
             ),
@@ -137,6 +160,8 @@ Color getStatusColor(String status) {
 
             final quantities =
                 product["quantities"] as Map<String, dynamic>;
+                print("QUANTITIES => $quantities");
+                debugPrint(quantities.toString());
                 const sizeOrder = [
   "96MM",
   "160MM",
@@ -170,8 +195,9 @@ Center(
     borderRadius: BorderRadius.circular(12),
     child: Image.network(
       product["imageUrl"],
-      height: 120,
-      fit: BoxFit.contain,
+      width: double.infinity,
+height: 170,
+fit: BoxFit.cover,
       errorBuilder: (context, error, stackTrace) {
         return const Icon(
           Icons.image,
@@ -203,16 +229,46 @@ const SizedBox(height: 15),
                     ...sizeOrder
     .where((size) => (quantities[size] ?? 0) > 0)
     .map(
-      (size) => Padding(
-        padding: const EdgeInsets.only(bottom: 5),
-        child: Text(
-          "$size  →  ${quantities[size]} PCS",
-          style: const TextStyle(
-            fontSize: 15,
-          ),
+      (size) => Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 10,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.straighten,
+              color: Colors.red,
+              size: 18,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+  size.replaceAll("MM", " MM"),
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            Text(
+  "${quantities[size]} PCS",
+  style: const TextStyle(
+    color: Colors.black87,
+    fontWeight: FontWeight.w600,
+    fontSize: 15,
+  ),
+),
+          ],
         ),
       ),
-    ),
+    )
+    .toList(),
 
                   ],
                 ),
@@ -220,6 +276,41 @@ const SizedBox(height: 15),
             );
 
           }),
+          const SizedBox(height: 10),
+
+Card(
+  color: Colors.white,
+  elevation: 3,
+  shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(16),
+  ),
+  child: Padding(
+    padding: const EdgeInsets.all(16),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+
+        const Text(
+          "Total Models",
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+
+        Text(
+          "${products.length}",
+          style: const TextStyle(
+            fontSize: 20,
+            color: Colors.red,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+
+      ],
+    ),
+  ),
+),
 
         ],
       ),

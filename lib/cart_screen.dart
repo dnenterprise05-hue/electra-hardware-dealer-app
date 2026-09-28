@@ -253,6 +253,12 @@ await counterRef.set(
   SetOptions(merge: true),
 );
   final user = FirebaseAuth.instance.currentUser;
+  final dealerDoc = await FirebaseFirestore.instance
+    .collection("dealers")
+    .doc(user!.uid)
+    .get();
+
+final dealerData = dealerDoc.data()!;
   
   debugPrint("ORDER UID : ${user?.uid}");
 debugPrint("ORDER MOBILE : ${user?.phoneNumber}");
@@ -266,6 +272,9 @@ await orderRef.set({
   "dealerMobile": user?.phoneNumber ?? "",
 
   "dealerUid": user?.uid ?? "",
+  "dealerName": dealerData["firmName"],
+
+"dealerCity": dealerData["city"],
   "orderDocId": orderRef.id,
 
   "orderNo":
