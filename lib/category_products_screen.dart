@@ -136,6 +136,11 @@ class _CategoryProductsScreenState
                         .toLowerCase()
                         .replaceAll(" ", "_"),
                   )
+                  // Dealer app shows only Admin-activated products.
+                  .where(
+                    "isActive",
+                    isEqualTo: true,
+                  )
                   .snapshots(),
 
               builder: (context, snapshot) {                if (snapshot.hasError) {
