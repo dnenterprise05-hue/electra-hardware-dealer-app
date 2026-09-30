@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'login_screen.dart';
+import 'pin_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'services/favourite_service.dart';
+import 'services/dealer_service.dart';
+import 'services/pin_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,9 +14,6 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  if (FirebaseAuth.instance.currentUser != null) {
-  await FavouriteService.instance.loadFavourites();
-}
 
   runApp(const ElectraApp());
 }
@@ -48,14 +47,36 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
 
-    Timer(const Duration(seconds: 3), () {
+    Timer(const Duration(seconds: 3), () async {
+      final next = await _resolveInitialRoute();
+      if (!mounted) return;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => const LoginScreen(),
+          builder: (context) => next,
         ),
       );
     });
+  }
+
+  /// Route resolution on app start.
+  ///
+  /// If a device PIN exists, the dealer unlocks with the PIN screen.
+  /// The PIN screen re-verifies the persisted Firebase Auth session
+  /// (dealer-document lookup + isActive check) before the Dashboard,
+  /// so a stale session or an inactive dealer can never slip through.
+  ///
+  /// If no PIN exists, any stray persisted session is dropped and
+  /// Dealer Code + Password login is required. No new Firebase user is
+  /// ever created here and the dealer documents are never modified.
+  Future<Widget> _resolveInitialRoute() async {
+    if (await PinService.hasPin()) {
+      return const PinScreen(mode: PinMode.unlock);
+    }
+
+    await FirebaseAuth.instance.signOut();
+    DealerService.clearSession();
+    return const LoginScreen();
   }
 
   @override

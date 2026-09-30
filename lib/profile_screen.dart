@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'login_screen.dart';
 import 'services/dealer_service.dart';
+import 'services/pin_service.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -174,10 +176,22 @@ class ProfileScreen extends StatelessWidget {
                   height: 55,
                   child: ElevatedButton.icon(
                     onPressed: () async {
+                      // Logout clears everything: the Firebase session,
+                      // the in-memory dealer session, AND the device PIN.
+                      // The whole route stack is removed and the user lands
+                      // directly on LoginScreen: no authenticated route
+                      // (Dashboard, PinScreen, ...) remains underneath, so
+                      // the system Back button can never return to one.
                       await FirebaseAuth.instance.signOut();
+                      DealerService.clearSession();
+                      await PinService.clearPin();
 
-                      Navigator.of(context).popUntil(
-                        (route) => route.isFirst,
+                      if (!context.mounted) return;
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(
+                          builder: (_) => const LoginScreen(),
+                        ),
+                        (route) => false,
                       );
                     },
                     icon: const Icon(Icons.logout),
