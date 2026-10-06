@@ -450,11 +450,23 @@ class _LoginScreenState extends State<LoginScreen>
               padding: EdgeInsets.only(
                 bottom: MediaQuery.of(context).viewInsets.bottom,
               ),
-              child: Center(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(20, 40, 20, 120),
-                child: FadeTransition(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 20),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
+                      ),
+                      child: Column(
+                        children: [
+                          // Space above keeps the background wall logo
+                          // visible; the form sits at center /
+                          // lower-center, horizontally centered.
+                          const Spacer(flex: 4),
+                          FadeTransition(
                   opacity: _fadeAnimation,
                   child: SlideTransition(
                     position: _slideAnimation,
@@ -650,9 +662,14 @@ sigmaY: 0,
                     ),
                   ),
                 ),
+                          const Spacer(flex: 3),
+                        ],
+                      ),
+                    ),
+                  ),
+                },
               ),
             ),
-          ),
           ),
 
           // Company details stay OUTSIDE the login card.
