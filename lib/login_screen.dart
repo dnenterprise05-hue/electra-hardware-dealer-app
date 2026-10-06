@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'pin_screen.dart';
@@ -16,7 +17,16 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen>
     with SingleTickerProviderStateMixin {
-  final dealerCodeController = TextEditingController();
+  // Dealer Code as 6 visual boxes with a fixed "EH" prefix:
+  // [E][H][d][d][d][d] — only the 4 digit boxes are editable.
+  static const int _digitLength = 4;
+
+  final List<TextEditingController> _digitControllers =
+      List.generate(_digitLength, (_) => TextEditingController());
+  final List<FocusNode> _digitFocusNodes =
+      List.generate(_digitLength, (_) => FocusNode());
+  final FocusNode _passwordFocusNode = FocusNode();
+
   final passwordController = TextEditingController();
 
   bool isLoading = false;
@@ -55,7 +65,13 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   void dispose() {
-    dealerCodeController.dispose();
+    for (final c in _digitControllers) {
+      c.dispose();
+    }
+    for (final n in _digitFocusNodes) {
+      n.dispose();
+    }
+    _passwordFocusNode.dispose();
     passwordController.dispose();
     _animationController.dispose();
     super.dispose();
@@ -64,11 +80,18 @@ class _LoginScreenState extends State<LoginScreen>
   Future<void> login() async {
     if (isLoading) return;
 
-    final rawCode = dealerCodeController.text.trim();
+    // Fixed "EH" prefix + the 4 entered digits, e.g. "EH0001".
+    final digits = _digitControllers.map((c) => c.text).join();
+    final rawCode = 'EH$digits';
     final password = passwordController.text;
 
-    if (rawCode.isEmpty) {
+    if (digits.isEmpty) {
       _showMessage('Enter Dealer Code');
+      return;
+    }
+
+    if (digits.length < _digitLength) {
+      _showMessage('Enter valid Dealer Code');
       return;
     }
 
@@ -210,6 +233,16 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
+  void _onForgotPassword() {
+    // TODO(backend): connect to the dealer password-reset flow once
+    // Firebase password provisioning/reset is implemented.
+    // No reset API exists today, so this shows guidance and keeps
+    // the existing login flow completely untouched.
+    _showMessage(
+      'To reset your password, please contact Electra Hardware support.',
+    );
+  }
+
   void _showMessage(String message) {
     if (!mounted) return;
 
@@ -253,7 +286,7 @@ class _LoginScreenState extends State<LoginScreen>
       fillColor: const Color(0xFF171513).withValues(alpha: 0.72),
       contentPadding: const EdgeInsets.symmetric(
         horizontal: 18,
-        vertical: 18,
+        vertical: 14,
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(15),
@@ -271,13 +304,131 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
+  /// Fixed "EH" prefix box — not editable, not deletable, not focusable.
+  Widget _buildFixedPrefixBox(String char) {
+    return SizedBox(
+      height: 46,
+      child: Container(
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: const Color(0xFF171513).withValues(alpha: 0.72),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.10),
+          ),
+        ),
+        child: Text(
+          char,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.5,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// One editable digit box of the Dealer Code (numbers only).
+  Widget _buildDigitBox(int index) {
+    return SizedBox(
+      height: 46,
+      child: Focus(
+        onKeyEvent: (node, event) {
+          // Backspace on an empty digit box moves to the previous
+          // digit box. It never moves into the fixed "EH" boxes.
+          if (event is KeyDownEvent &&
+              event.logicalKey == LogicalKeyboardKey.backspace &&
+              _digitControllers[index].text.isEmpty &&
+              index > 0) {
+            _digitFocusNodes[index - 1].requestFocus();
+            final prevText = _digitControllers[index - 1].text;
+            _digitControllers[index - 1].selection = TextSelection(
+              baseOffset: 0,
+              extentOffset: prevText.length,
+            );
+            return KeyEventResult.handled;
+          }
+          return KeyEventResult.ignored;
+        },
+        child: TextField(
+          controller: _digitControllers[index],
+          focusNode: _digitFocusNodes[index],
+          textAlign: TextAlign.center,
+          keyboardType: TextInputType.number,
+          textInputAction: TextInputAction.next,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.5,
+          ),
+          cursorColor: const Color(0xFFE0B65C),
+          inputFormatters: [
+            // Numbers only, one digit per box.
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(1),
+          ],
+          onTap: () {
+            // Tapping a filled box selects its digit for easy replace.
+            final text = _digitControllers[index].text;
+            if (text.isNotEmpty) {
+              _digitControllers[index].selection = TextSelection(
+                baseOffset: 0,
+                extentOffset: text.length,
+              );
+            }
+          },
+          onChanged: (value) {
+            if (value.isNotEmpty) {
+              if (index < _digitLength - 1) {
+                // Digit entered -> move to the next digit box.
+                _digitFocusNodes[index + 1].requestFocus();
+              } else {
+                // 4th digit entered -> move to Password.
+                _passwordFocusNode.requestFocus();
+              }
+            }
+          },
+          onSubmitted: (_) {
+            if (index < _digitLength - 1) {
+              _digitFocusNodes[index + 1].requestFocus();
+            } else {
+              _passwordFocusNode.requestFocus();
+            }
+          },
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: const Color(0xFF171513).withValues(alpha: 0.72),
+            contentPadding: EdgeInsets.zero,
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: Colors.white.withValues(alpha: 0.10),
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                color: Color(0xFFD9AD52),
+                width: 1.2,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.sizeOf(context);
-
     return Scaffold(
       backgroundColor: Colors.black,
-      resizeToAvoidBottomInset: true,
+      // Background must stay completely fixed when the keyboard opens:
+      // the Scaffold never resizes, so the Stack (background image)
+      // keeps its exact size and position.
+      resizeToAvoidBottomInset: false,
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -293,7 +444,13 @@ class _LoginScreenState extends State<LoginScreen>
           ),
 
           SafeArea(
-            child: Center(
+            // Only this form layer responds to the keyboard; the
+            // background image layers never receive the insets.
+            child: Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: Center(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(20, 40, 20, 120),
@@ -303,7 +460,7 @@ class _LoginScreenState extends State<LoginScreen>
                     position: _slideAnimation,
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(
-                        maxWidth: 430,
+                        maxWidth: 340,
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(26),
@@ -313,11 +470,11 @@ class _LoginScreenState extends State<LoginScreen>
 sigmaY: 0,
                           ),
                           child: Container(
-                            padding: EdgeInsets.fromLTRB(
-                              25,
-                              size.height < 700 ? 24 : 30,
-                              25,
-                              28,
+                            padding: const EdgeInsets.fromLTRB(
+                              20,
+                              18,
+                              20,
+                              20,
                             ),
                             decoration: BoxDecoration(
                               // Smoked transparent glass.
@@ -328,26 +485,49 @@ sigmaY: 0,
                             ),
                             child: Column(
                               children: [
-                                const SizedBox(height: 8),
+                                const SizedBox(height: 6),
 
-                                TextField(
-                                  controller: dealerCodeController,
-                                  textCapitalization:
-                                      TextCapitalization.characters,
-                                  textInputAction: TextInputAction.next,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  cursorColor: const Color(0xFFE0B65C),
-                                  decoration: _inputDecoration(
-                                    label: 'Dealer Code',
-                                    icon: Icons.badge_outlined,
+                                const Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Padding(
+                                    padding: EdgeInsets.only(
+                                      left: 2,
+                                      bottom: 8,
+                                    ),
+                                    child: Text(
+                                      'Dealer Code',
+                                      style: TextStyle(
+                                        color: Color(0xFFB8AEA2),
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        letterSpacing: 0.3,
+                                      ),
+                                    ),
                                   ),
                                 ),
 
-                                const SizedBox(height: 15),
+                                // 6 visual boxes: fixed "EH" + 4 digits.
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _buildFixedPrefixBox('E'),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: _buildFixedPrefixBox('H'),
+                                    ),
+                                    for (int i = 0;
+                                        i < _digitLength;
+                                        i++) ...[
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: _buildDigitBox(i),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+
+                                const SizedBox(height: 10),
 
                                 TextField(
                                   controller: passwordController,
@@ -356,7 +536,7 @@ sigmaY: 0,
                                   onSubmitted: (_) => login(),
                                   style: const TextStyle(
                                     color: Colors.white,
-                                    fontSize: 16,
+                                    fontSize: 15,
                                     fontWeight: FontWeight.w500,
                                   ),
                                   cursorColor: const Color(0xFFE0B65C),
@@ -380,11 +560,40 @@ sigmaY: 0,
                                   ),
                                 ),
 
-                                const SizedBox(height: 25),
+                                const SizedBox(height: 4),
+
+                                // Forgot Password — tappable, subtle.
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: TextButton(
+                                    onPressed: _onForgotPassword,
+                                    style: TextButton.styleFrom(
+                                      padding:
+                                          const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 4,
+                                      ),
+                                      minimumSize: Size.zero,
+                                      tapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
+                                    ),
+                                    child: const Text(
+                                      'Forgot Password?',
+                                      style: TextStyle(
+                                        color: Color(0xFFE3B85C),
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        letterSpacing: 0.2,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+
+                                const SizedBox(height: 10),
 
                                 SizedBox(
                                   width: double.infinity,
-                                  height: 55,
+                                  height: 48,
                                   child: ElevatedButton(
                                     onPressed: isLoading ? null : login,
                                     style: ElevatedButton.styleFrom(
@@ -443,6 +652,7 @@ sigmaY: 0,
                 ),
               ),
             ),
+          ),
           ),
 
           // Company details stay OUTSIDE the login card.
