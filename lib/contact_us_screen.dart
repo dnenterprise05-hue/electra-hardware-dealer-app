@@ -92,22 +92,9 @@ class ContactUsScreen extends StatelessWidget {
                         20, 8, 20, 24),
                     child: Column(
                       children: [
-                        Image.asset(
-                          "assets/logo.png",
-                          width: 140,
-                        ),
-                        const SizedBox(height: 10),
-                        const Text(
-                          "Manufacturer & Exporter of Premium Hardware Products",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: _ivorySoft,
-                            letterSpacing: 0.3,
-                          ),
-                        ),
-                        const SizedBox(height: 22),
+                        // Address starts right after the
+                        // background's natural logo area.
+                        const SizedBox(height: 6),
                         _glassCard(
                           icon: Icons.location_on_outlined,
                           title: "Address",
