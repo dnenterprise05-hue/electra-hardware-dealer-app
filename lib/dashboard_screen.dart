@@ -18,8 +18,8 @@ class DashboardScreen extends StatelessWidget {
   // ---- Electra gold accents (matches locked login theme) ----
   static const _gold = Color(0xFFC9A45C);
   static const _goldLight = Color(0xFFE9CB8B);
-  static const _textPrimary = Color(0xFFFFFFFF);
-  static const _textSecondary = Color(0xFFCFC6B8);
+  static const _textPrimary = Color(0xFFFFF8EE);
+  static const _textSecondary = Color(0xFFE4D3AC);
   static const _textMuted = Color(0xFF9A9184);
 
   @override
@@ -87,10 +87,22 @@ class DashboardScreen extends StatelessWidget {
                 'assets/login_background.png',
                 fit: BoxFit.cover,
               ),
-              // Deep dark overlay: the login background becomes a
-              // subtle premium texture instead of a visible photo.
+              // Warm showroom overlay: gradient keeps the header and
+              // cards readable while the bronze architectural lighting
+              // stays visible through the mid-screen.
               Container(
-                color: Colors.black.withValues(alpha: 0.78),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withValues(alpha: 0.72),
+                      Colors.black.withValues(alpha: 0.55),
+                      Colors.black.withValues(alpha: 0.62),
+                    ],
+                    stops: const [0.0, 0.45, 1.0],
+                  ),
+                ),
               ),
               SafeArea(
                 child: Column(
@@ -158,8 +170,13 @@ class DashboardScreen extends StatelessWidget {
                             width: 40,
                             height: 1.5,
                             decoration: BoxDecoration(
-                              color:
-                                  _gold.withValues(alpha: 0.5),
+                              gradient:
+                                  const LinearGradient(
+                                colors: [
+                                  Color(0xFF8A6A2F),
+                                  Color(0xFFE9CB8B),
+                                ],
+                              ),
                               borderRadius:
                                   BorderRadius.circular(1.5),
                             ),
@@ -287,26 +304,27 @@ class DashboardScreen extends StatelessWidget {
       decoration: BoxDecoration(
         // Dark translucent charcoal — lets the login background
         // breathe through while keeping cards readable.
-        color: const Color(0xFF17140F).withValues(alpha: 0.87),
+        color: const Color(0xFF0C0A07).withValues(alpha: 0.82),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: _gold.withValues(
-            alpha: isPrimary ? 0.55 : 0.22,
+          color: const Color(0xFFD8B36A).withValues(
+            alpha: isPrimary ? 0.6 : 0.28,
           ),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.35),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
+            color: Colors.black.withValues(alpha: 0.5),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
           ),
-          if (isPrimary)
-            BoxShadow(
-              color: _gold.withValues(alpha: 0.10),
-              blurRadius: 16,
-              offset: const Offset(0, 3),
+          BoxShadow(
+            color: const Color(0xFFD8B36A).withValues(
+              alpha: isPrimary ? 0.10 : 0.05,
             ),
+            blurRadius: 20,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
       child: Material(
@@ -322,19 +340,21 @@ class DashboardScreen extends StatelessWidget {
                 height: 54,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: _gold.withValues(
-                    alpha: isPrimary ? 0.15 : 0.09,
+                  color: const Color(0xFFD8B36A).withValues(
+                    alpha: isPrimary ? 0.14 : 0.08,
                   ),
                   border: Border.all(
-                    color: _gold.withValues(
-                      alpha: isPrimary ? 0.5 : 0.28,
+                    color: const Color(0xFFD8B36A).withValues(
+                      alpha: isPrimary ? 0.55 : 0.3,
                     ),
                   ),
                 ),
                 child: Icon(
                   icon,
                   size: 25,
-                  color: isPrimary ? _goldLight : _gold,
+                  color: isPrimary
+                      ? const Color(0xFFF3DFAE)
+                      : const Color(0xFFD8B36A),
                 ),
               ),
               const SizedBox(height: 12),
