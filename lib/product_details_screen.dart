@@ -218,7 +218,6 @@ class _ProductDetailsScreenState
                           child: Stack(
                             children: [
                               Container(
-                                height: 230,
                                 width: double.infinity,
                                 decoration: BoxDecoration(
                                   borderRadius:
