@@ -461,12 +461,16 @@ class _LoginScreenState extends State<LoginScreen>
                         minHeight: constraints.maxHeight,
                       ),
                       child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // Space above keeps the background wall logo
-                          // visible; the form sits at center /
-                          // lower-center, horizontally centered.
-                          const Spacer(flex: 4),
-                          FadeTransition(
+                          // Centered slightly below center WITHOUT flex:
+                          // Spacer/Expanded inside a scroll view gets
+                          // infinite height and pushes the card
+                          // off-screen (invisible form).
+                          Padding(
+                            padding:
+                                const EdgeInsets.only(top: 32),
+                            child: FadeTransition(
                   opacity: _fadeAnimation,
                   child: SlideTransition(
                     position: _slideAnimation,
@@ -662,7 +666,7 @@ sigmaY: 0,
                     ),
                   ),
                 ),
-                          const Spacer(flex: 3),
+                          ),
                         ],
                       ),
                     ),
