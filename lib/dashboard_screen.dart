@@ -200,7 +200,6 @@ class DashboardScreen extends StatelessWidget {
                                 context,
                                 Icons.shopping_cart_outlined,
                                 "PLACE ORDER",
-                                isPrimary: true,
                                 onTap: () {
                                   Navigator.push(
                                     context,
@@ -307,10 +306,7 @@ class DashboardScreen extends StatelessWidget {
     IconData icon,
     String title, {
     required VoidCallback onTap,
-    bool isPrimary = false,
   }) {
-    final iconColor = isPrimary ? _goldBright : _gold;
-
     return Expanded(
       child: InkWell(
         onTap: onTap,
@@ -328,35 +324,25 @@ class DashboardScreen extends StatelessWidget {
                   shape: BoxShape.circle,
                   // Whisper-thin elegant gold ring only.
                   border: Border.all(
-                    color: _gold.withValues(
-                      alpha: isPrimary ? 0.55 : 0.32,
-                    ),
+                    color: _gold.withValues(alpha: 0.32),
                     width: 1,
                   ),
                 ),
                 child: Icon(
                   icon,
                   size: 30,
-                  color: iconColor,
+                  color: _gold,
                 ),
               ),
               const SizedBox(height: 10),
               Text(
                 title,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
                   color: _ivory,
                   letterSpacing: 1.6,
-                  shadows: isPrimary
-                      ? [
-                          Shadow(
-                            color: _gold.withValues(alpha: 0.35),
-                            blurRadius: 12,
-                          ),
-                        ]
-                      : null,
                 ),
               ),
               const SizedBox(height: 7),
@@ -364,9 +350,7 @@ class DashboardScreen extends StatelessWidget {
                 width: 30,
                 height: 1.5,
                 decoration: BoxDecoration(
-                  color: _gold.withValues(
-                    alpha: isPrimary ? 0.85 : 0.5,
-                  ),
+                  color: _gold.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(1.5),
                 ),
               ),
