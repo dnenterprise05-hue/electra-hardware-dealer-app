@@ -45,6 +45,18 @@ class _CategoryProductsScreenState
     super.dispose();
   }
 
+  /// Extracts the numeric portion of a model number for
+  /// numerical sorting. Handles "EL 238", "EL-238", "EL238".
+  /// Non-numeric models sort last.
+  static int _modelNumberOf(
+      QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+    final raw =
+        (doc.data()["modelNo"] ?? "").toString();
+    final digits =
+        RegExp(r'\d+').allMatches(raw).map((m) => m.group(0)).join();
+    return int.tryParse(digits) ?? 999999;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -259,7 +271,12 @@ class _CategoryProductsScreenState
                             .toLowerCase();
 
                         return model.contains(searchText);
-                      }).toList();
+                      }).toList()
+                        // Numerical ascending sort on the model
+                        // number (EL 10 < EL 99 < EL 100).
+                        ..sort((a, b) =>
+                            _modelNumberOf(a).compareTo(
+                                _modelNumberOf(b)));
 
                       if (products.isEmpty) {
                         return const Center(
