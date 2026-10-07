@@ -93,9 +93,11 @@ class ContactUsScreen extends StatelessWidget {
                   child: LayoutBuilder(
                     builder: (context, constraints) {
                       final h = constraints.maxHeight;
+                      // Whole content group sits ~16px higher
+                      // for a comfortable viewport fit.
                       return Padding(
                         padding: const EdgeInsets.fromLTRB(
-                            20, 0, 20, 10),
+                            20, 0, 20, 26),
                         child: Column(
                           crossAxisAlignment:
                               CrossAxisAlignment.stretch,
