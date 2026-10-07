@@ -330,210 +330,241 @@ class _PinScreenState extends State<PinScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Premium dark theme matching the Dealer Login screen.
+    // Layout, PIN mechanism, validation and auth logic are unchanged.
     final defaultPinTheme = PinTheme(
       width: 62,
       height: 66,
       textStyle: const TextStyle(
         fontSize: 26,
         fontWeight: FontWeight.bold,
-        color: Colors.black87,
+        color: Colors.white,
       ),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        border: Border.all(color: Colors.grey.shade400),
+        color: const Color(0xFF171513).withValues(alpha: 0.72),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.10),
+        ),
         borderRadius: BorderRadius.circular(14),
       ),
     );
 
     final focusedPinTheme = defaultPinTheme.copyWith(
       decoration: defaultPinTheme.decoration!.copyWith(
-        border: Border.all(color: Colors.red, width: 2),
+        border: Border.all(
+          color: const Color(0xFFE0B65C),
+          width: 2,
+        ),
       ),
     );
 
     final submittedPinTheme = defaultPinTheme.copyWith(
       decoration: defaultPinTheme.decoration!.copyWith(
-        border: Border.all(color: Colors.red.shade300),
+        border: Border.all(
+          color: const Color(0xFFE0B65C).withValues(alpha: 0.55),
+        ),
       ),
     );
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.lock,
-                  size: 72,
-                  color: Colors.red,
-                ),
-                const SizedBox(height: 18),
-                const Text(
-                  'Electra Hardware',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  _isCreate ? 'Create 4-Digit PIN' : 'Welcome Back',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    color: Colors.red,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                if (!_isCreate && _ownerCode.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    _ownerCode,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade600,
-                      fontWeight: FontWeight.w500,
+      backgroundColor: Colors.black,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Same premium backdrop as the Dealer Login screen.
+          Image.asset(
+            'assets/login_background.png',
+            fit: BoxFit.cover,
+          ),
+          Container(
+            color: Colors.black.withValues(alpha: 0.55),
+          ),
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      'assets/logo_light.png',
+                      width: 150,
                     ),
-                  ),
-                ],
-                const SizedBox(height: 10),
-                Text(
-                  _isCreate
-                      ? 'Set a 4-digit PIN for quick login on this device.'
-                      : 'Enter your 4-digit PIN',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: Colors.grey.shade700,
-                  ),
-                ),
-                const SizedBox(height: 28),
-
-                if (_isCreate) ...[
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Enter PIN',
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Pinput(
-                    length: 4,
-                    controller: _newPinController,
-                    keyboardType: TextInputType.number,
-                    obscureText: true,
-                    defaultPinTheme: defaultPinTheme,
-                    focusedPinTheme: focusedPinTheme,
-                    submittedPinTheme: submittedPinTheme,
-                  ),
-                  const SizedBox(height: 20),
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Confirm PIN',
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Pinput(
-                    length: 4,
-                    controller: _confirmPinController,
-                    keyboardType: TextInputType.number,
-                    obscureText: true,
-                    defaultPinTheme: defaultPinTheme,
-                    focusedPinTheme: focusedPinTheme,
-                    submittedPinTheme: submittedPinTheme,
-                    onSubmitted: (_) => _submitCreate(),
-                  ),
-                ] else ...[
-                  Pinput(
-                    length: 4,
-                    controller: _pinController,
-                    keyboardType: TextInputType.number,
-                    obscureText: true,
-                    defaultPinTheme: defaultPinTheme,
-                    focusedPinTheme: focusedPinTheme,
-                    submittedPinTheme: submittedPinTheme,
-                    onCompleted: (_) => _submitUnlock(),
-                  ),
-                ],
-
-                if (_error != null) ...[
-                  const SizedBox(height: 16),
-                  Text(
-                    _error!,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.red,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-
-                const SizedBox(height: 28),
-
-                SizedBox(
-                  width: double.infinity,
-                  height: 55,
-                  child: ElevatedButton(
-                    onPressed: _busy
-                        ? null
-                        : (_isCreate ? _submitCreate : _submitUnlock),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                    const SizedBox(height: 18),
+                    Text(
+                      _isCreate ? 'Set Login PIN' : 'Welcome Back',
+                      style: const TextStyle(
+                        fontSize: 22,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                    child: _busy
-                        ? const CircularProgressIndicator(
-                            color: Colors.white,
-                          )
-                        : Text(
-                            _isCreate ? 'SAVE PIN' : 'CONTINUE',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                  ),
-                ),
-
-                if (!_isCreate) ...[
-                  const SizedBox(height: 8),
-                  TextButton(
-                    onPressed: _busy ? null : _forgotPin,
-                    child: const Text(
-                      'Forgot PIN?',
+                    if (!_isCreate && _ownerCode.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        _ownerCode,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: const Color(0xFFC5B9AB),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 10),
+                    Text(
+                      _isCreate
+                          ? 'Create a PIN for quick and secure login.'
+                          : 'Enter your 4-digit PIN',
+                      textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: Colors.red,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                        color:
+                            const Color(0xFFC5B9AB),
                       ),
                     ),
-                  ),
-                  if (_lockedOut) ...[
-                    const SizedBox(height: 4),
-                    OutlinedButton(
-                      onPressed: _goToPasswordLogin,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.red,
-                        side: const BorderSide(color: Colors.red),
+                    const SizedBox(height: 28),
+
+                    if (_isCreate) ...[
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Enter PIN',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
-                      child: const Text(
-                        'Login with Dealer Code + Password',
+                      const SizedBox(height: 8),
+                      Pinput(
+                        length: 4,
+                        controller: _newPinController,
+                        keyboardType: TextInputType.number,
+                        obscureText: true,
+                        defaultPinTheme: defaultPinTheme,
+                        focusedPinTheme: focusedPinTheme,
+                        submittedPinTheme: submittedPinTheme,
+                      ),
+                      const SizedBox(height: 20),
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Confirm PIN',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Pinput(
+                        length: 4,
+                        controller: _confirmPinController,
+                        keyboardType: TextInputType.number,
+                        obscureText: true,
+                        defaultPinTheme: defaultPinTheme,
+                        focusedPinTheme: focusedPinTheme,
+                        submittedPinTheme: submittedPinTheme,
+                        onSubmitted: (_) => _submitCreate(),
+                      ),
+                    ] else ...[
+                      Pinput(
+                        length: 4,
+                        controller: _pinController,
+                        keyboardType: TextInputType.number,
+                        obscureText: true,
+                        defaultPinTheme: defaultPinTheme,
+                        focusedPinTheme: focusedPinTheme,
+                        submittedPinTheme: submittedPinTheme,
+                        onCompleted: (_) => _submitUnlock(),
+                      ),
+                    ],
+
+                    if (_error != null) ...[
+                      const SizedBox(height: 16),
+                      Text(
+                        _error!,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Color(0xFFE57373),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+
+                    const SizedBox(height: 28),
+
+                    SizedBox(
+                      width: double.infinity,
+                      height: 55,
+                      child: ElevatedButton(
+                        onPressed: _busy
+                            ? null
+                            : (_isCreate ? _submitCreate : _submitUnlock),
+                        style: ElevatedButton.styleFrom(
+                          elevation: 8,
+                          shadowColor: const Color(0xFFD6A94D)
+                              .withValues(alpha: 0.25),
+                          backgroundColor: const Color(0xFFDDB45F),
+                          foregroundColor: const Color(0xFF17120D),
+                          disabledBackgroundColor:
+                              const Color(0xFF806C48),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                        ),
+                        child: _busy
+                            ? const SizedBox(
+                                width: 23,
+                                height: 23,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.3,
+                                  color: Color(0xFF17120D),
+                                ),
+                              )
+                            : Text(
+                                _isCreate ? 'SAVE PIN' : 'CONTINUE',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                       ),
                     ),
+
+                    if (!_isCreate) ...[
+                      const SizedBox(height: 8),
+                      TextButton(
+                        onPressed: _busy ? null : _forgotPin,
+                        child: const Text(
+                          'Forgot PIN?',
+                          style: TextStyle(
+                            color: Color(0xFFE0B65C),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      if (_lockedOut) ...[
+                        const SizedBox(height: 4),
+                        OutlinedButton(
+                          onPressed: _goToPasswordLogin,
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Color(0xFFE0B65C),
+                            side: const BorderSide(
+                                color: Color(0xFFE0B65C)),
+                          ),
+                          child: const Text(
+                            'Login with Dealer Code + Password',
+                          ),
+                        ),
+                      ],
+                    ],
                   ],
-                ],
-              ],
+                ),
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
