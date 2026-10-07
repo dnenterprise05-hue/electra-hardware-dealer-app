@@ -69,6 +69,7 @@ class _PinScreenState extends State<PinScreen> {
   // Create mode: enter + confirm fields.
   final _newPinController = TextEditingController();
   final _confirmPinController = TextEditingController();
+  final _confirmPinFocusNode = FocusNode();
 
   bool _busy = false;
   String? _error;
@@ -99,6 +100,7 @@ class _PinScreenState extends State<PinScreen> {
     _pinController.dispose();
     _newPinController.dispose();
     _confirmPinController.dispose();
+    _confirmPinFocusNode.dispose();
     super.dispose();
   }
 
@@ -430,7 +432,7 @@ class _PinScreenState extends State<PinScreen> {
 
                     if (_isCreate) ...[
                       const Align(
-                        alignment: Alignment.centerLeft,
+                        alignment: Alignment.center,
                         child: Text(
                           'Enter PIN',
                           style: TextStyle(
@@ -449,10 +451,12 @@ class _PinScreenState extends State<PinScreen> {
                         defaultPinTheme: defaultPinTheme,
                         focusedPinTheme: focusedPinTheme,
                         submittedPinTheme: submittedPinTheme,
+                        onCompleted: (_) =>
+                            _confirmPinFocusNode.requestFocus(),
                       ),
                       const SizedBox(height: 20),
                       const Align(
-                        alignment: Alignment.centerLeft,
+                        alignment: Alignment.center,
                         child: Text(
                           'Confirm PIN',
                           style: TextStyle(
@@ -466,6 +470,7 @@ class _PinScreenState extends State<PinScreen> {
                       Pinput(
                         length: 4,
                         controller: _confirmPinController,
+                        focusNode: _confirmPinFocusNode,
                         keyboardType: TextInputType.number,
                         obscureText: true,
                         defaultPinTheme: defaultPinTheme,
