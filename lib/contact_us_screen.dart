@@ -110,7 +110,7 @@ class ContactUsScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 6),
                         _glassCard(
                           icon: Icons.support_agent_outlined,
                           title: "Customer Care",
@@ -163,7 +163,7 @@ class ContactUsScreen extends StatelessWidget {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 6),
                         _glassCard(
                           icon: Icons.email_outlined,
                           title: "Email",
@@ -174,7 +174,7 @@ class ContactUsScreen extends StatelessWidget {
                                 color: _ivory),
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 6),
                         _glassCard(
                           icon: Icons.language_outlined,
                           title: "Website",
@@ -272,19 +272,20 @@ class ContactUsScreen extends StatelessWidget {
               ImageFilter.blur(sigmaX: 2.5, sigmaY: 2.5),
           child: Container(
             color: Colors.black.withValues(alpha: 0.10),
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.symmetric(
+                horizontal: 14, vertical: 10),
             child: Column(
               crossAxisAlignment:
                   CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    Icon(icon, color: _gold, size: 22),
-                    const SizedBox(width: 10),
+                    Icon(icon, color: _gold, size: 20),
+                    const SizedBox(width: 8),
                     Text(
                       title,
                       style: const TextStyle(
-                        fontSize: 16,
+                        fontSize: 15,
                         fontWeight: FontWeight.w600,
                         color: _ivory,
                         letterSpacing: 0.4,
@@ -292,7 +293,7 @@ class ContactUsScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 child,
               ],
             ),
@@ -307,8 +308,8 @@ class ContactUsScreen extends StatelessWidget {
     return Pressable(
       onTap: onTap,
       child: Container(
-        width: 44,
-        height: 44,
+        width: 40,
+        height: 40,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(
@@ -325,9 +326,9 @@ class ContactUsScreen extends StatelessWidget {
     return Pressable(
       onTap: onTap,
       child: Container(
-        width: 44,
-        height: 44,
-        padding: const EdgeInsets.all(9),
+        width: 40,
+        height: 40,
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(

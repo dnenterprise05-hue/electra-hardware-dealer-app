@@ -158,10 +158,9 @@ class _SplashScreenState extends State<SplashScreen>
           Container(
             color: Colors.black.withValues(alpha: 0.55),
           ),
-          // Premium loading line at the vertical center
-          // (slightly below, tied to the logo area).
+          // Premium loading line at the exact vertical center.
           Align(
-            alignment: const Alignment(0.0, 0.25),
+            alignment: Alignment.center,
             child: Padding(
               padding:
                   const EdgeInsets.symmetric(horizontal: 56),
