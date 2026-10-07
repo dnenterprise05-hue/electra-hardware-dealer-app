@@ -57,21 +57,50 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _progressController;
+  late final AnimationController _logoController;
+
   @override
   void initState() {
     super.initState();
 
-    Timer(const Duration(seconds: 3), () async {
+    _logoController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..forward();
+
+    // Thin glowing progress line animates across the 2-3s splash window.
+    _progressController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2500),
+    )..forward();
+
+    Timer(const Duration(milliseconds: 2800), () async {
       final next = await _resolveInitialRoute();
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (context) => next,
+        PageRouteBuilder(
+          transitionDuration: const Duration(milliseconds: 600),
+          pageBuilder: (_, __, ___) => next,
+          transitionsBuilder: (_, animation, __, child) {
+            return FadeTransition(
+              opacity: animation,
+              child: child,
+            );
+          },
         ),
       );
     });
+  }
+
+  @override
+  void dispose() {
+    _progressController.dispose();
+    _logoController.dispose();
+    super.dispose();
   }
 
   /// Route resolution on app start.
@@ -85,50 +114,104 @@ class _SplashScreenState extends State<SplashScreen> {
   /// Dealer Code + Password login is required. No new Firebase user is
   /// ever created here and the dealer documents are never modified.
   Future<Widget> _resolveInitialRoute() async {
-    if (await PinService.hasPin()) {
-      return const PinScreen(mode: PinMode.unlock);
-    }
+    try {
+      if (await PinService.hasPin()) {
+        return const PinScreen(mode: PinMode.unlock);
+      }
 
-    await FirebaseAuth.instance.signOut();
-    DealerService.clearSession();
+      await FirebaseAuth.instance.signOut();
+      DealerService.clearSession();
+    } catch (_) {
+      // Never get stuck on the splash: fall back to Dealer Login.
+    }
     return const LoginScreen();
   }
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       backgroundColor: Colors.black,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.hardware,
-              color: Colors.red,
-              size: 90,
-            ),
-            SizedBox(height: 20),
-            Text(
-              "ELECTRA HARDWARE",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Same premium backdrop as the Dealer Login screen.
+          Image.asset(
+            'assets/login_background.png',
+            fit: BoxFit.cover,
+          ),
+          Container(
+            color: Colors.black.withValues(alpha: 0.55),
+          ),
+          // Official logo, unmodified, gently fading in.
+          Center(
+            child: FadeTransition(
+              opacity: _logoController,
+              child: Image.asset(
+                'assets/logo_light.png',
+                width: 210,
               ),
             ),
-            SizedBox(height: 10),
-            Text(
-              "CONNECT",
-              style: TextStyle(
-                color: Colors.red,
-                fontSize: 18,
-                letterSpacing: 3,
-              ),
+          ),
+          // Subtle premium loading line near the bottom.
+          Positioned(
+            left: 56,
+            right: 56,
+            bottom: 72,
+            child: AnimatedBuilder(
+              animation: _progressController,
+              builder: (context, _) {
+                return CustomPaint(
+                  painter: _SplashProgressPainter(
+                    progress: _progressController.value,
+                  ),
+                  size: const Size(double.infinity, 4),
+                );
+              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
+  }
+}
+
+/// Thin glowing gold progress line for the splash screen.
+class _SplashProgressPainter extends CustomPainter {
+  final double progress;
+
+  _SplashProgressPainter({required this.progress});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final cy = size.height / 2;
+
+    final track = Paint()
+      ..color = Colors.white.withValues(alpha: 0.14)
+      ..strokeWidth = 3
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(Offset(0, cy), Offset(size.width, cy), track);
+
+    if (progress <= 0) return;
+
+    final glow = Paint()
+      ..strokeWidth = 3
+      ..strokeCap = StrokeCap.round
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5)
+      ..shader = const LinearGradient(
+        colors: [Color(0xFF8A6A2F), Color(0xFFE0B65C)],
+      ).createShader(
+        Rect.fromLTWH(0, 0, size.width * progress, size.height),
+      );
+    canvas.drawLine(
+      Offset(0, cy),
+      Offset(size.width * progress, cy),
+      glow,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _SplashProgressPainter oldDelegate) {
+    return oldDelegate.progress != progress;
   }
 }
 
