@@ -443,14 +443,19 @@ class _LoginScreenState extends State<LoginScreen>
             color: Colors.black.withValues(alpha: 0.28),
           ),
 
-          // Visually centered on the full phone screen: the group's
-          // center aligns with the screen's center (not SafeArea).
-          // Fixed anchor: never moves with the keyboard.
-          Center(
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20),
-              child: FadeTransition(
+          // EXACT vertical center of the FULL phone screen: the center
+          // of this whole group aligns with the center of the display.
+          // Positioned.fill makes the full-screen centering explicit
+          // (not SafeArea, not content bounds). Fixed anchor: the group
+          // never moves when the keyboard opens or closes.
+          Positioned.fill(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20),
+                  child: FadeTransition(
                   opacity: _fadeAnimation,
                   child: SlideTransition(
                     position: _slideAnimation,
@@ -646,9 +651,11 @@ sigmaY: 0,
                       ),
                     ),
                   ),
-                ),
-                          ),
-                        ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
           // Company details stay OUTSIDE the login card.
           Positioned(
