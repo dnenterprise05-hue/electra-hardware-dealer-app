@@ -150,31 +150,41 @@ class _CategoryProductsScreenState
                 Padding(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 24),
-                  child: TextField(
-                    controller: searchController,
-                    style: const TextStyle(color: _ivory),
-                    onChanged: (value) {
-                      setState(() {
-                        searchText = value.toLowerCase();
-                      });
-                    },
-                    decoration: InputDecoration(
-                      hintText: "Search Model No.",
-                      hintStyle: TextStyle(
-                        color: _muted.withValues(alpha: 0.8),
-                        fontSize: 14,
-                      ),
-                      prefixIcon: const Icon(
-                        Icons.search,
-                        color: _gold,
-                        size: 20,
-                      ),
-                      filled: true,
-                      fillColor:
-                          Colors.black.withValues(alpha: 0.45),
-                      contentPadding:
-                          const EdgeInsets.symmetric(
-                              vertical: 14),
+                  // ~10% frosted glass on the search bar.
+                  child: ClipRRect(
+                    borderRadius:
+                        BorderRadius.circular(14),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(
+                          sigmaX: 2.5, sigmaY: 2.5),
+                      child: TextField(
+                        controller: searchController,
+                        style:
+                            const TextStyle(color: _ivory),
+                        onChanged: (value) {
+                          setState(() {
+                            searchText =
+                                value.toLowerCase();
+                          });
+                        },
+                        decoration: InputDecoration(
+                          hintText: "Search Model No.",
+                          hintStyle: TextStyle(
+                            color: _muted.withValues(
+                                alpha: 0.8),
+                            fontSize: 14,
+                          ),
+                          prefixIcon: const Icon(
+                            Icons.search,
+                            color: _gold,
+                            size: 20,
+                          ),
+                          filled: true,
+                          fillColor: Colors.black
+                              .withValues(alpha: 0.10),
+                          contentPadding:
+                              const EdgeInsets.symmetric(
+                                  vertical: 14),
                       enabledBorder: OutlineInputBorder(
                         borderRadius:
                             BorderRadius.circular(14),
@@ -182,11 +192,16 @@ class _CategoryProductsScreenState
                           color: _gold.withValues(alpha: 0.35),
                         ),
                       ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius:
-                            BorderRadius.circular(14),
-                        borderSide: BorderSide(
-                          color: _gold.withValues(alpha: 0.7),
+                          focusedBorder:
+                              OutlineInputBorder(
+                            borderRadius:
+                                BorderRadius.circular(
+                                    14),
+                            borderSide: BorderSide(
+                              color: _gold.withValues(
+                                  alpha: 0.7),
+                            ),
+                          ),
                         ),
                       ),
                     ),

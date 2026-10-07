@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'place_order_screen.dart';
@@ -312,14 +313,30 @@ class DashboardScreen extends StatelessWidget {
     final iconColor = isPrimary ? _goldBright : _gold;
 
     return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        // Soft rounded touch feedback, invisible at rest.
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+      // Subtle ~10% frosted glass panel around each menu item.
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: _gold.withValues(alpha: 0.35),
+          ),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(14),
+          child: BackdropFilter(
+            filter:
+                ImageFilter.blur(sigmaX: 2.5, sigmaY: 2.5),
+            child: Container(
+              color: Colors.black.withValues(alpha: 0.10),
+              child: InkWell(
+                borderRadius:
+                    BorderRadius.circular(14),
+                onTap: onTap,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 10, horizontal: 6),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
             children: [
               Container(
                 width: 64,
@@ -359,18 +376,24 @@ class DashboardScreen extends StatelessWidget {
                       : null,
                 ),
               ),
-              const SizedBox(height: 7),
-              Container(
-                width: 30,
-                height: 1.5,
-                decoration: BoxDecoration(
-                  color: _gold.withValues(
-                    alpha: isPrimary ? 0.85 : 0.5,
+                      const SizedBox(height: 7),
+                      Container(
+                        width: 30,
+                        height: 1.5,
+                        decoration: BoxDecoration(
+                          color: _gold.withValues(
+                            alpha:
+                                isPrimary ? 0.85 : 0.5,
+                          ),
+                          borderRadius:
+                              BorderRadius.circular(1.5),
+                        ),
+                      ),
+                    ],
                   ),
-                  borderRadius: BorderRadius.circular(1.5),
                 ),
               ),
-            ],
+            ),
           ),
         ),
       ),
