@@ -92,9 +92,10 @@ class ContactUsScreen extends StatelessWidget {
                         20, 8, 20, 24),
                     child: Column(
                       children: [
-                        // Address starts right after the
-                        // background's natural logo area.
-                        const SizedBox(height: 6),
+                        // Push the Address card below the
+                        // background's Electra Hardware logo
+                        // so the full logo stays visible.
+                        const SizedBox(height: 170),
                         _glassCard(
                           icon: Icons.location_on_outlined,
                           title: "Address",
