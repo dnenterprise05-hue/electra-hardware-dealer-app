@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="electra_hardware"
+        android:label="Electra Hardware"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
