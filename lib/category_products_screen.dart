@@ -225,7 +225,8 @@ class _CategoryProductsScreenState
 
                 // ================= PRODUCT LIST =================
                 Expanded(
-                  child: StreamBuilder<QuerySnapshot>(
+                  child: StreamBuilder<
+                      QuerySnapshot<Map<String, dynamic>>>(
                     stream: FirebaseFirestore.instance
                         .collection("products")
                         .where(
