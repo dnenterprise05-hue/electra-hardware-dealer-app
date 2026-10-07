@@ -158,21 +158,24 @@ class _SplashScreenState extends State<SplashScreen>
           Container(
             color: Colors.black.withValues(alpha: 0.55),
           ),
-          // Subtle premium loading line near the bottom.
-          Positioned(
-            left: 56,
-            right: 56,
-            bottom: 72,
-            child: AnimatedBuilder(
-              animation: _progressController,
-              builder: (context, _) {
-                return CustomPaint(
-                  painter: _SplashProgressPainter(
-                    progress: _progressController.value,
-                  ),
-                  size: const Size(double.infinity, 4),
-                );
-              },
+          // Premium loading line at the vertical center
+          // (slightly below, tied to the logo area).
+          Align(
+            alignment: const Alignment(0.0, 0.25),
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 56),
+              child: AnimatedBuilder(
+                animation: _progressController,
+                builder: (context, _) {
+                  return CustomPaint(
+                    painter: _SplashProgressPainter(
+                      progress: _progressController.value,
+                    ),
+                    size: const Size(double.infinity, 4),
+                  );
+                },
+              ),
             ),
           ),
         ],
