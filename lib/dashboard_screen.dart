@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'place_order_screen.dart';
@@ -322,16 +323,26 @@ class DashboardScreen extends StatelessWidget {
                 height: 64,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  // Whisper-thin elegant gold ring only.
                   border: Border.all(
                     color: _gold.withValues(alpha: 0.32),
                     width: 1,
                   ),
                 ),
-                child: Icon(
-                  icon,
-                  size: 30,
-                  color: _gold,
+                // ~10% frosted blur inside the circle only.
+                child: ClipOval(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(
+                        sigmaX: 2.5, sigmaY: 2.5),
+                    child: Container(
+                      color: Colors.black
+                          .withValues(alpha: 0.10),
+                      child: Icon(
+                        icon,
+                        size: 30,
+                        color: _gold,
+                      ),
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 10),
