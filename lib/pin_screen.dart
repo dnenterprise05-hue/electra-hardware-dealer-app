@@ -448,11 +448,23 @@ class _PinScreenState extends State<PinScreen> {
                         controller: _newPinController,
                         keyboardType: TextInputType.number,
                         obscureText: true,
+                        // Do not let Pinput unfocus/close the keyboard on
+                        // completion: its internal unfocus races the focus
+                        // move to Confirm PIN and kills it on device.
+                        closeKeyboardWhenCompleted: false,
                         defaultPinTheme: defaultPinTheme,
                         focusedPinTheme: focusedPinTheme,
                         submittedPinTheme: submittedPinTheme,
-                        onCompleted: (_) =>
-                            _confirmPinFocusNode.requestFocus(),
+                        onCompleted: (_) {
+                          // Defer until the current input transaction has
+                          // finished, then move focus explicitly.
+                          WidgetsBinding.instance
+                              .addPostFrameCallback((_) {
+                            if (!mounted) return;
+                            FocusScope.of(context)
+                                .requestFocus(_confirmPinFocusNode);
+                          });
+                        },
                       ),
                       const SizedBox(height: 20),
                       const Align(
