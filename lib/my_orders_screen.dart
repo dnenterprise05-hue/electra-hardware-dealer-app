@@ -1,9 +1,14 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'order_details_screen.dart';
 import 'services/dealer_service.dart';
 
+/// My Orders — luxury showroom theme.
+///
+/// UI-only redesign. Mobile resolution, newest-first sort, dealer
+/// order query and Order Details navigation are unchanged.
 class MyOrdersScreen extends StatefulWidget {
   const MyOrdersScreen({super.key});
 
@@ -12,6 +17,13 @@ class MyOrdersScreen extends StatefulWidget {
 }
 
 class _MyOrdersScreenState extends State<MyOrdersScreen> {
+  static const _gold = Color(0xFFD8B36A);
+  static const _goldBright = Color(0xFFF3DFAE);
+  static const _goldDeep = Color(0xFF8A6A2F);
+  static const _ivory = Color(0xFFFFF8EE);
+  static const _ivorySoft = Color(0xFFE4D3AC);
+  static const _muted = Color(0xFFB9AC93);
+
   String? _mobile;
   bool _loading = true;
   bool _mobileError = false;
@@ -62,71 +74,85 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
     return tb.compareTo(ta);
   }
 
-  /// Badge background: same semantic mapping as Order Details.
-  Color _badgeBackground(String? status) {
-    switch (status?.toLowerCase()) {
-      case "pending":
-        return Colors.orange.shade100;
-      case "confirmed":
-        return Colors.blue.shade100;
-      case "processing":
-        return Colors.purple.shade100;
-      case "dispatched":
-        return Colors.indigo.shade100;
-      case "delivered":
-        return Colors.green.shade100;
-      case "cancelled":
-        return Colors.red.shade100;
-      default:
-        return Colors.grey.shade200;
-    }
-  }
-
-  /// Badge text color: same semantic mapping as Order Details.
-  Color _badgeForeground(String? status) {
-    switch (status?.toLowerCase()) {
-      case "pending":
-        return Colors.orange.shade900;
-      case "confirmed":
-        return Colors.blue.shade900;
-      case "processing":
-        return Colors.purple.shade900;
-      case "dispatched":
-        return Colors.indigo.shade900;
-      case "delivered":
-        return Colors.green.shade900;
-      case "cancelled":
-        return Colors.red.shade900;
-      default:
-        return Colors.grey.shade800;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade100,
-      appBar: AppBar(
-        title: const Text("My Orders"),
-        centerTitle: true,
-        backgroundColor: Colors.red,
-        foregroundColor: Colors.white,
+      backgroundColor: Colors.black,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.asset(
+            'assets/login_background.png',
+            fit: BoxFit.cover,
+          ),
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withValues(alpha: 0.68),
+                  Colors.black.withValues(alpha: 0.42),
+                  Colors.black.withValues(alpha: 0.60),
+                ],
+                stops: const [0.0, 0.45, 1.0],
+              ),
+            ),
+          ),
+          SafeArea(
+            child: Column(
+              children: [
+                Padding(
+                  padding:
+                      const EdgeInsets.fromLTRB(8, 6, 8, 0),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(
+                          Icons.arrow_back,
+                          color: _ivory,
+                        ),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                      const Expanded(
+                        child: Text(
+                          "MY ORDERS",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: _ivory,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 2.0,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 48),
+                    ],
+                  ),
+                ),
+                Expanded(child: _buildBody()),
+              ],
+            ),
+          ),
+        ],
       ),
-      body: _buildBody(),
     );
   }
 
   Widget _buildBody() {
     if (_loading) {
       return const Center(
-        child: CircularProgressIndicator(),
+        child: CircularProgressIndicator(color: _gold),
       );
     }
 
     if (_mobileError || _mobile == null) {
       // Never query the entire orders collection without a dealer filter.
       return const Center(
-        child: Text("Could not verify dealer. Please login again."),
+        child: Text(
+          "Could not verify dealer. Please login again.",
+          style: TextStyle(color: _ivory),
+        ),
       );
     }
 
@@ -143,13 +169,16 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Center(
-            child: Text(snapshot.error.toString()),
+            child: Text(
+              snapshot.error.toString(),
+              style: const TextStyle(color: _ivory),
+            ),
           );
         }
 
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
-            child: CircularProgressIndicator(),
+            child: CircularProgressIndicator(color: _gold),
           );
         }
 
@@ -160,8 +189,10 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
             child: Text(
               "No Orders Found",
               style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: _ivory,
+                letterSpacing: 0.5,
               ),
             ),
           );
@@ -170,7 +201,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
         final orders = docs.toList()..sort(_compareNewestFirst);
 
         return ListView.builder(
-          padding: const EdgeInsets.all(15),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
           itemCount: orders.length,
           itemBuilder: (context, index) {
             final data = orders[index].data();
@@ -182,91 +213,132 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
             final status = data["status"]?.toString();
             final statusLabel = status ?? "Unknown";
 
-            return Card(
-              color: Colors.white,
-              elevation: 4,
-              shadowColor: Colors.black12,
-              margin: const EdgeInsets.only(bottom: 15),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+            return Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: _gold.withValues(alpha: 0.35),
+                ),
               ),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(16),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => OrderDetailsScreen(
-                        order: data,
-                      ),
-                    ),
-                  );
-                },
-                child: Padding(
-                  padding: const EdgeInsets.all(15),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(
+                      sigmaX: 2.5, sigmaY: 2.5),
+                  child: Container(
+                    color:
+                        Colors.black.withValues(alpha: 0.10),
+                    child: InkWell(
+                      borderRadius:
+                          BorderRadius.circular(14),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                OrderDetailsScreen(
+                              order: data,
+                            ),
+                          ),
+                        );
+                      },
+                      child: Padding(
+                        padding:
+                            const EdgeInsets.all(15),
+                        child: Row(
+                          crossAxisAlignment:
+                              CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              data["orderNo"]?.toString() ?? "Order",
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              "${data["date"] ?? "-"}",
-                              style: const TextStyle(
-                                fontSize: 15,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 5,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: _badgeBackground(status),
-                                    borderRadius:
-                                        BorderRadius.circular(20),
-                                  ),
-                                  child: Text(
-                                    statusLabel,
-                                    style: TextStyle(
-                                      color: _badgeForeground(status),
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 13,
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment:
+                                    CrossAxisAlignment
+                                        .start,
+                                children: [
+                                  Text(
+                                    data["orderNo"]
+                                            ?.toString() ??
+                                        "Order",
+                                    style: const TextStyle(
+                                      fontSize: 17,
+                                      fontWeight:
+                                          FontWeight.w600,
+                                      color: _ivory,
+                                      letterSpacing: 0.4,
                                     ),
                                   ),
-                                ),
-                                const SizedBox(width: 10),
-                                Text(
-                                  "${products.length} Model",
-                                  style: const TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 14,
+                                  const SizedBox(height: 7),
+                                  Text(
+                                    "${data["date"] ?? "-"}",
+                                    style: const TextStyle(
+                                      fontSize: 13.5,
+                                      color: _ivorySoft,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(height: 9),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding:
+                                            const EdgeInsets
+                                                .symmetric(
+                                          horizontal: 12,
+                                          vertical: 5,
+                                        ),
+                                        decoration:
+                                            BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius
+                                                  .circular(
+                                                      20),
+                                          border:
+                                              Border.all(
+                                            color: _gold
+                                                .withValues(
+                                                    alpha:
+                                                        0.6),
+                                          ),
+                                        ),
+                                        child: Text(
+                                          statusLabel,
+                                          style:
+                                              const TextStyle(
+                                            color: _goldBright,
+                                            fontWeight:
+                                                FontWeight
+                                                    .w600,
+                                            fontSize: 12.5,
+                                            letterSpacing:
+                                                0.4,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                          width: 10),
+                                      Text(
+                                        "${products.length} Model",
+                                        style:
+                                            const TextStyle(
+                                          color: _muted,
+                                          fontSize: 13.5,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(
+                              Icons.chevron_right_rounded,
+                              color: _gold.withValues(
+                                  alpha: 0.7),
+                              size: 26,
                             ),
                           ],
                         ),
                       ),
-                      const Icon(
-                        Icons.chevron_right_rounded,
-                        color: Colors.grey,
-                        size: 28,
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
