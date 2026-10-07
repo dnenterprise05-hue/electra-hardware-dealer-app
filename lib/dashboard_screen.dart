@@ -87,9 +87,10 @@ class DashboardScreen extends StatelessWidget {
                 'assets/login_background.png',
                 fit: BoxFit.cover,
               ),
-              // Subtle dark overlay for card readability.
+              // Deep dark overlay: the login background becomes a
+              // subtle premium texture instead of a visible photo.
               Container(
-                color: Colors.black.withValues(alpha: 0.45),
+                color: Colors.black.withValues(alpha: 0.78),
               ),
               SafeArea(
                 child: Column(
@@ -145,12 +146,23 @@ class DashboardScreen extends StatelessWidget {
                               Text(
                                 "GSTIN : $gst",
                                 style: const TextStyle(
-                                  fontSize: 12.5,
-                                  color: _textMuted,
+                                  fontSize: 13,
+                                  color: _textSecondary,
                                   letterSpacing: 0.4,
                                 ),
                               ),
                             ],
+                          ),
+                          const SizedBox(height: 12),
+                          Container(
+                            width: 40,
+                            height: 1.5,
+                            decoration: BoxDecoration(
+                              color:
+                                  _gold.withValues(alpha: 0.5),
+                              borderRadius:
+                                  BorderRadius.circular(1.5),
+                            ),
                           ),
                         ],
                       ),
@@ -275,9 +287,7 @@ class DashboardScreen extends StatelessWidget {
       decoration: BoxDecoration(
         // Dark translucent charcoal — lets the login background
         // breathe through while keeping cards readable.
-        color: const Color(0xFF17140F).withValues(
-          alpha: isPrimary ? 0.78 : 0.68,
-        ),
+        color: const Color(0xFF17140F).withValues(alpha: 0.87),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: _gold.withValues(
