@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'widgets/pressable.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'product_details_screen.dart';
 import 'cart_screen.dart';
@@ -100,7 +101,7 @@ class _CategoryProductsScreenState
                           ),
                         ),
                       ),
-                      InkWell(
+                      Pressable(
                         onTap: () async {
                           await Navigator.push(
                             context,
@@ -320,7 +321,7 @@ class _CategoryProductsScreenState
               ImageFilter.blur(sigmaX: 2.5, sigmaY: 2.5),
           child: Container(
             color: Colors.black.withValues(alpha: 0.10),
-            child: InkWell(
+            child: Pressable(
               borderRadius:
                   BorderRadius.circular(14),
               onTap: () {

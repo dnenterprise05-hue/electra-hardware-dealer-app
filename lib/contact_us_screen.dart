@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'widgets/pressable.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Contact Us — luxury showroom theme.
@@ -313,7 +314,7 @@ class ContactUsScreen extends StatelessWidget {
 
   static Widget _socialIcon(
       IconData icon, VoidCallback onTap) {
-    return GestureDetector(
+    return Pressable(
       onTap: onTap,
       child: Container(
         width: 44,
@@ -331,7 +332,7 @@ class ContactUsScreen extends StatelessWidget {
 
   static Widget _socialImage(
       String asset, VoidCallback onTap) {
-    return GestureDetector(
+    return Pressable(
       onTap: onTap,
       child: Container(
         width: 44,

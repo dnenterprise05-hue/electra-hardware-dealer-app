@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'widgets/pressable.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -47,6 +48,16 @@ class ElectraApp extends StatelessWidget {
         // No white flash during route transitions: every Scaffold
         // defaults to black unless it sets its own background.
         scaffoldBackgroundColor: Colors.black,
+        // Subtle premium screen transition (fade + slight upward
+        // slide) applied to every route without changing
+        // navigation code.
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: {
+            TargetPlatform.android:
+                FadeSlidePageTransition(),
+            TargetPlatform.iOS: FadeSlidePageTransition(),
+          },
+        ),
       ),
       home: const SplashScreen(),
     );

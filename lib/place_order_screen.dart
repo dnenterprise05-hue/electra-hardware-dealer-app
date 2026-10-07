@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'widgets/pressable.dart';
 import 'category_products_screen.dart';
 import 'cart_screen.dart';
 import 'services/cart_service.dart';
@@ -86,7 +87,7 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> {
                           ),
                         ),
                       ),
-                      InkWell(
+                      Pressable(
                         onTap: () async {
                           await Navigator.push(
                             context,
@@ -250,7 +251,7 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> {
           filter: ImageFilter.blur(sigmaX: 2.5, sigmaY: 2.5),
           child: Container(
             color: Colors.black.withValues(alpha: 0.10),
-            child: InkWell(
+            child: Pressable(
               borderRadius: BorderRadius.circular(14),
               onTap: () {
                 Navigator.push(

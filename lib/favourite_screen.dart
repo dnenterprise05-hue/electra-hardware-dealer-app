@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'widgets/pressable.dart';
 import 'services/favourite_service.dart';
 import 'product_details_screen.dart';
 
@@ -144,7 +145,7 @@ class FavouriteScreen extends StatelessWidget {
                                   color: Colors.black
                                       .withValues(
                                           alpha: 0.10),
-                                  child: InkWell(
+                                  child: Pressable(
                                     borderRadius:
                                         BorderRadius
                                             .circular(14),

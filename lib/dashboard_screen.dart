@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'widgets/pressable.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'place_order_screen.dart';
 import 'services/dealer_service.dart';
@@ -309,7 +310,7 @@ class DashboardScreen extends StatelessWidget {
     required VoidCallback onTap,
   }) {
     return Expanded(
-      child: InkWell(
+      child: Pressable(
         onTap: onTap,
         // Soft rounded touch feedback, invisible at rest.
         borderRadius: BorderRadius.circular(12),

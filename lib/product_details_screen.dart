@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'widgets/pressable.dart';
 import 'models/cart_item.dart';
 import 'services/cart_service.dart';
 import 'cart_screen.dart';
@@ -123,7 +124,7 @@ class _ProductDetailsScreenState
                           ),
                         ),
                       ),
-                      InkWell(
+                      Pressable(
                         onTap: () async {
                           await Navigator.push(
                             context,
@@ -284,7 +285,7 @@ class _ProductDetailsScreenState
                                             .isFavourite(
                                       widget.modelNo,
                                     );
-                                    return GestureDetector(
+                                    return Pressable(
                                       onTap: () {
                                         FavouriteService
                                             .instance
@@ -383,7 +384,7 @@ class _ProductDetailsScreenState
                                             .withValues(
                                                 alpha:
                                                     0.10),
-                                    child: InkWell(
+                                    child: Pressable(
                                       borderRadius:
                                           BorderRadius
                                               .circular(
@@ -606,7 +607,7 @@ class _ProductDetailsScreenState
     required IconData icon,
     required VoidCallback onPressed,
   }) {
-    return InkWell(
+    return Pressable(
       onTap: onPressed,
       borderRadius: BorderRadius.circular(24),
       child: Container(
