@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'models/cart_item.dart';
 import 'services/cart_service.dart';
@@ -372,8 +373,6 @@ class _ProductDetailsScreenState
                           return Container(
                             margin: const EdgeInsets.only(
                                 bottom: 12),
-                            padding:
-                                const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               borderRadius:
                                   BorderRadius.circular(
@@ -383,7 +382,24 @@ class _ProductDetailsScreenState
                                     alpha: 0.3),
                               ),
                             ),
-                            child: Column(
+                            // ~10% frosted glass, same as the
+                            // rest of the Place Order flow.
+                            child: ClipRRect(
+                              borderRadius:
+                                  BorderRadius.circular(
+                                      14),
+                              child: BackdropFilter(
+                                filter: ImageFilter.blur(
+                                    sigmaX: 2.5,
+                                    sigmaY: 2.5),
+                                child: Container(
+                                  color: Colors.black
+                                      .withValues(
+                                          alpha: 0.10),
+                                  padding:
+                                      const EdgeInsets
+                                          .all(16),
+                                  child: Column(
                               crossAxisAlignment:
                                   CrossAxisAlignment.start,
                               children: [
@@ -473,7 +489,10 @@ class _ProductDetailsScreenState
                                 ),
                               ],
                             ),
-                          );
+                          ),
+                        ),
+                      ),
+                    );
                         }),
 
                         const SizedBox(height: 20),

@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'product_details_screen.dart';
@@ -296,21 +297,32 @@ class _CategoryProductsScreenState
           color: _gold.withValues(alpha: 0.35),
         ),
       ),
-      child: InkWell(
+      // ~10% frosted glass, same as Place Order category boxes.
+      child: ClipRRect(
         borderRadius: BorderRadius.circular(14),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => ProductDetailsScreen(
-                modelNo: data["modelNo"],
-                imageUrl: data["imageUrl"],
-              ),
-            ),
-          );
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(12),
+        child: BackdropFilter(
+          filter:
+              ImageFilter.blur(sigmaX: 2.5, sigmaY: 2.5),
+          child: Container(
+            color: Colors.black.withValues(alpha: 0.10),
+            child: InkWell(
+              borderRadius:
+                  BorderRadius.circular(14),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        ProductDetailsScreen(
+                      modelNo: data["modelNo"],
+                      imageUrl: data["imageUrl"],
+                    ),
+                  ),
+                );
+              },
+              child: Padding(
+                padding:
+                    const EdgeInsets.all(12),
           child: Row(
           children: [
             // Product photo — displayed exactly as provided.
@@ -369,13 +381,17 @@ class _CategoryProductsScreenState
                 ],
               ),
             ),
-            Icon(
-              Icons.chevron_right,
-              color: _gold.withValues(alpha: 0.85),
-              size: 24,
+                  Icon(
+                    Icons.chevron_right,
+                    color:
+                        _gold.withValues(alpha: 0.85),
+                    size: 24,
+                  ),
+                ],
+              ),
             ),
-          ],
           ),
+        ),
         ),
       ),
     );
