@@ -446,12 +446,12 @@ class _LoginScreenState extends State<LoginScreen>
           SafeArea(
             // Fixed anchor: this group never moves when the keyboard
             // opens or closes; the keyboard simply overlays the lower
-            // part of the screen if needed. bottom: 30 places the group
-            // ~0.5 cm above its previous position (keyboard closed).
+            // part of the screen if needed. The group sits at the exact
+            // vertical center of the available area.
             child: Center(
               child: Padding(
                 padding:
-                    const EdgeInsets.fromLTRB(20, 0, 20, 30),
+                    const EdgeInsets.symmetric(horizontal: 20),
                 child: FadeTransition(
                   opacity: _fadeAnimation,
                   child: SlideTransition(
