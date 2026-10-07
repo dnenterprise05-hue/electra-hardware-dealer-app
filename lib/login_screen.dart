@@ -444,33 +444,15 @@ class _LoginScreenState extends State<LoginScreen>
           ),
 
           SafeArea(
-            // Only this form layer responds to the keyboard; the
-            // background image layers never receive the insets.
-            child: Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-              ),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 20),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: constraints.maxHeight,
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // Centered slightly below center WITHOUT flex:
-                          // Spacer/Expanded inside a scroll view gets
-                          // infinite height and pushes the card
-                          // off-screen (invisible form).
-                          Padding(
-                            padding:
-                                const EdgeInsets.only(top: 32),
-                            child: FadeTransition(
+            // Fixed anchor: this group never moves when the keyboard
+            // opens or closes; the keyboard simply overlays the lower
+            // part of the screen if needed. bottom: 30 places the group
+            // ~0.5 cm above its previous position (keyboard closed).
+            child: Center(
+              child: Padding(
+                padding:
+                    const EdgeInsets.fromLTRB(20, 0, 20, 30),
+                child: FadeTransition(
                   opacity: _fadeAnimation,
                   child: SlideTransition(
                     position: _slideAnimation,
@@ -547,6 +529,7 @@ sigmaY: 0,
 
                                 TextField(
                                   controller: passwordController,
+                                  focusNode: _passwordFocusNode,
                                   obscureText: obscurePassword,
                                   textInputAction: TextInputAction.done,
                                   onSubmitted: (_) => login(),
@@ -667,14 +650,8 @@ sigmaY: 0,
                   ),
                 ),
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
 
           // Company details stay OUTSIDE the login card.
           Positioned(
