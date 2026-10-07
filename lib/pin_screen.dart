@@ -333,11 +333,11 @@ class _PinScreenState extends State<PinScreen> {
     // Premium dark theme matching the Dealer Login screen.
     // Layout, PIN mechanism, validation and auth logic are unchanged.
     final defaultPinTheme = PinTheme(
-      width: 62,
-      height: 66,
+      width: 46,
+      height: 46,
       textStyle: const TextStyle(
-        fontSize: 26,
-        fontWeight: FontWeight.bold,
+        fontSize: 20,
+        fontWeight: FontWeight.w700,
         color: Colors.white,
       ),
       decoration: BoxDecoration(
@@ -345,7 +345,7 @@ class _PinScreenState extends State<PinScreen> {
         border: Border.all(
           color: Colors.white.withValues(alpha: 0.10),
         ),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
       ),
     );
 
@@ -390,13 +390,15 @@ class _PinScreenState extends State<PinScreen> {
               children: [
                 Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 32),
-                  child: Column(
-                    children: [
+                      const EdgeInsets.symmetric(horizontal: 20),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 340),
+                    child: Column(
+                      children: [
                       Text(
                       _isCreate ? 'Set Login PIN' : 'Welcome Back',
                       style: const TextStyle(
-                        fontSize: 22,
+                        fontSize: 20,
                         color: Colors.white,
                         fontWeight: FontWeight.w700,
                       ),
@@ -419,7 +421,7 @@ class _PinScreenState extends State<PinScreen> {
                           : 'Enter your 4-digit PIN',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: 14,
                         color:
                             const Color(0xFFC5B9AB),
                       ),
@@ -432,6 +434,7 @@ class _PinScreenState extends State<PinScreen> {
                         child: Text(
                           'Enter PIN',
                           style: TextStyle(
+                            fontSize: 13,
                             fontWeight: FontWeight.w600,
                             color: Colors.white,
                           ),
@@ -453,6 +456,7 @@ class _PinScreenState extends State<PinScreen> {
                         child: Text(
                           'Confirm PIN',
                           style: TextStyle(
+                            fontSize: 13,
                             fontWeight: FontWeight.w600,
                             color: Colors.white,
                           ),
@@ -498,7 +502,7 @@ class _PinScreenState extends State<PinScreen> {
 
                     SizedBox(
                       width: double.infinity,
-                      height: 55,
+                      height: 48,
                       child: ElevatedButton(
                         onPressed: _busy
                             ? null
@@ -527,8 +531,8 @@ class _PinScreenState extends State<PinScreen> {
                             : Text(
                                 _isCreate ? 'SAVE PIN' : 'CONTINUE',
                                 style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
                                 ),
                               ),
                       ),
@@ -564,6 +568,7 @@ class _PinScreenState extends State<PinScreen> {
                   ],
                 ),
               ),
+            ),
             ],
           ),
         ),
