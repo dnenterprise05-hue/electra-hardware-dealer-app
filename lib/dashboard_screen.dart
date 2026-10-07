@@ -7,23 +7,20 @@ import 'contact_us_screen.dart';
 import 'profile_screen.dart';
 import 'favourite_screen.dart';
 
-/// Premium dark + gold Electra Hardware dashboard.
+/// Dashboard on the locked Dealer Login background.
 ///
-/// UI-only redesign. All navigation routes and dealer-data logic are
+/// "Dealer Login background + premium gold dashboard cards".
+/// UI-only change. All navigation routes and dealer-data logic are
 /// unchanged from the previous implementation.
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
-  // ---- Electra dark-luxury palette (matches locked login theme) ----
-  static const _bg = Color(0xFF0B0B0B);
-  static const _card = Color(0xFF161616);
-  static const _cardElevated = Color(0xFF1C1A17);
+  // ---- Electra gold accents (matches locked login theme) ----
   static const _gold = Color(0xFFC9A45C);
   static const _goldLight = Color(0xFFE9CB8B);
-  static const _goldDeep = Color(0xFF8A6A2F);
   static const _textPrimary = Color(0xFFFFFFFF);
-  static const _textSecondary = Color(0xFFB8AEA2);
-  static const _textMuted = Color(0xFF7A7268);
+  static const _textSecondary = Color(0xFFCFC6B8);
+  static const _textMuted = Color(0xFF9A9184);
 
   @override
   Widget build(BuildContext context) {
@@ -33,9 +30,9 @@ class DashboardScreen extends StatelessWidget {
     final dealerDocId = DealerService.dealerDocId;
 
     if (dealerDocId == null || dealerDocId.isEmpty) {
-      return const Scaffold(
-        backgroundColor: _bg,
-        body: Center(
+      return Scaffold(
+        backgroundColor: Colors.black,
+        body: const Center(
           child: Text(
             "Dealer Not Found",
             style: TextStyle(
@@ -49,7 +46,7 @@ class DashboardScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: Colors.black,
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
             .collection("dealers")
@@ -82,196 +79,185 @@ class DashboardScreen extends StatelessWidget {
           final location = DealerService.locationOf(dealer);
           final gst = DealerService.gstOf(dealer);
 
-          return Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xFF14100C),
-                  _bg,
-                  _bg,
-                ],
-                stops: [0.0, 0.35, 1.0],
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              // EXACT same background asset as the locked Dealer Login.
+              Image.asset(
+                'assets/login_background.png',
+                fit: BoxFit.cover,
               ),
-            ),
-            child: SafeArea(
-              child: Column(
-                children: [
-                  // ================= BRAND HEADER =================
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 18, 24, 0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          "ELECTRA HARDWARE",
-                          style: TextStyle(
-                            color: _textPrimary,
-                            fontSize: 24,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 2.5,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Container(
-                          width: 44,
-                          height: 2,
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [_goldDeep, _goldLight],
-                            ),
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          dealer["firmName"] ?? "",
-                          style: const TextStyle(
-                            color: _textPrimary,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.3,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.location_on_outlined,
-                              size: 15,
-                              color: _gold,
-                            ),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                location.isEmpty ? "—" : location,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: _textSecondary,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.receipt_outlined,
-                              size: 15,
-                              color: _gold,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              "GSTIN : $gst",
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: _textMuted,
-                                letterSpacing: 0.4,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 22),
-
-                  // ================= ACTION GRID =================
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: GridView.count(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 14,
-                        mainAxisSpacing: 14,
-                        childAspectRatio: 1.08,
+              // Subtle dark overlay for card readability.
+              Container(
+                color: Colors.black.withValues(alpha: 0.45),
+              ),
+              SafeArea(
+                child: Column(
+                  children: [
+                    // ================= COMPACT HEADER =================
+                    // Dealer identity only — the brand logo lives in the
+                    // background itself, so no logo/title is added here.
+                    Padding(
+                      padding:
+                          const EdgeInsets.fromLTRB(24, 14, 24, 0),
+                      child: Column(
+                        crossAxisAlignment:
+                            CrossAxisAlignment.start,
                         children: [
-                          _dashboardCard(
-                            context,
-                            Icons.shopping_cart_outlined,
-                            "Place Order",
-                            isPrimary: true,
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      const PlaceOrderScreen(),
-                                ),
-                              );
-                            },
+                          Text(
+                            dealer["firmName"] ?? "",
+                            style: const TextStyle(
+                              color: _textPrimary,
+                              fontSize: 21,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.4,
+                            ),
                           ),
-                          _dashboardCard(
-                            context,
-                            Icons.inventory_2_outlined,
-                            "My Orders",
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      const MyOrdersScreen(),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.location_on_outlined,
+                                size: 14,
+                                color: _gold,
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  location.isEmpty ? "—" : location,
+                                  style: const TextStyle(
+                                    fontSize: 13.5,
+                                    color: _textSecondary,
+                                  ),
                                 ),
-                              );
-                            },
+                              ),
+                            ],
                           ),
-                          _dashboardCard(
-                            context,
-                            Icons.account_balance_wallet_outlined,
-                            "Ledger",
-                            onTap: () {},
-                          ),
-                          _dashboardCard(
-                            context,
-                            Icons.favorite_border,
-                            "Favourite",
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => FavouriteScreen(),
+                          const SizedBox(height: 5),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.receipt_outlined,
+                                size: 14,
+                                color: _gold,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                "GSTIN : $gst",
+                                style: const TextStyle(
+                                  fontSize: 12.5,
+                                  color: _textMuted,
+                                  letterSpacing: 0.4,
                                 ),
-                              );
-                            },
-                          ),
-                          _dashboardCard(
-                            context,
-                            Icons.person_outline,
-                            "Profile",
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      const ProfileScreen(),
-                                ),
-                              );
-                            },
-                          ),
-                          _dashboardCard(
-                            context,
-                            Icons.support_agent,
-                            "Contact Us",
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => ContactUsScreen(),
-                                ),
-                              );
-                            },
+                              ),
+                            ],
                           ),
                         ],
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                ],
+
+                    const SizedBox(height: 18),
+
+                    // ================= ACTION GRID =================
+                    // Taller cards, rows distributed across the screen.
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                            20, 0, 20, 16),
+                        child: GridView.count(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 14,
+                          mainAxisSpacing: 14,
+                          childAspectRatio: 0.92,
+                          physics:
+                              const NeverScrollableScrollPhysics(),
+                          children: [
+                            _dashboardCard(
+                              context,
+                              Icons.shopping_cart_outlined,
+                              "Place Order",
+                              isPrimary: true,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        const PlaceOrderScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+                            _dashboardCard(
+                              context,
+                              Icons.inventory_2_outlined,
+                              "My Orders",
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        const MyOrdersScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+                            _dashboardCard(
+                              context,
+                              Icons
+                                  .account_balance_wallet_outlined,
+                              "Ledger",
+                              onTap: () {},
+                            ),
+                            _dashboardCard(
+                              context,
+                              Icons.favorite_border,
+                              "Favourite",
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        FavouriteScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+                            _dashboardCard(
+                              context,
+                              Icons.person_outline,
+                              "Profile",
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        const ProfileScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+                            _dashboardCard(
+                              context,
+                              Icons.support_agent,
+                              "Contact Us",
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        ContactUsScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+            ],
           );
         },
       ),
@@ -285,54 +271,59 @@ class DashboardScreen extends StatelessWidget {
     required VoidCallback onTap,
     bool isPrimary = false,
   }) {
-    final borderColor = isPrimary
-        ? _gold.withValues(alpha: 0.55)
-        : _gold.withValues(alpha: 0.18);
-
     return Container(
       decoration: BoxDecoration(
-        color: isPrimary ? _cardElevated : _card,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: borderColor, width: 1),
+        // Dark translucent charcoal — lets the login background
+        // breathe through while keeping cards readable.
+        color: const Color(0xFF17140F).withValues(
+          alpha: isPrimary ? 0.78 : 0.68,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: _gold.withValues(
+            alpha: isPrimary ? 0.55 : 0.22,
+          ),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.45),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
+            color: Colors.black.withValues(alpha: 0.35),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
           ),
           if (isPrimary)
             BoxShadow(
-              color: _gold.withValues(alpha: 0.12),
-              blurRadius: 18,
-              offset: const Offset(0, 4),
+              color: _gold.withValues(alpha: 0.10),
+              blurRadius: 16,
+              offset: const Offset(0, 3),
             ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(16),
           onTap: onTap,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                width: 56,
-                height: 56,
+                width: 54,
+                height: 54,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: _gold.withValues(
-                    alpha: isPrimary ? 0.16 : 0.10,
+                    alpha: isPrimary ? 0.15 : 0.09,
                   ),
                   border: Border.all(
                     color: _gold.withValues(
-                      alpha: isPrimary ? 0.45 : 0.25,
+                      alpha: isPrimary ? 0.5 : 0.28,
                     ),
                   ),
                 ),
                 child: Icon(
                   icon,
-                  size: 26,
+                  size: 25,
                   color: isPrimary ? _goldLight : _gold,
                 ),
               ),
@@ -342,23 +333,13 @@ class DashboardScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 15,
-                  fontWeight:
-                      isPrimary ? FontWeight.w700 : FontWeight.w600,
+                  fontWeight: isPrimary
+                      ? FontWeight.w700
+                      : FontWeight.w600,
                   color: _textPrimary,
                   letterSpacing: 0.2,
                 ),
               ),
-              if (isPrimary) ...[
-                const SizedBox(height: 6),
-                Container(
-                  width: 28,
-                  height: 2,
-                  decoration: BoxDecoration(
-                    color: _gold.withValues(alpha: 0.7),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ],
             ],
           ),
         ),
