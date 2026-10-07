@@ -167,29 +167,54 @@ class _SplashProgressPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final cy = size.height / 2;
+    final w = size.width;
 
+    // Track (unchanged).
     final track = Paint()
       ..color = Colors.white.withValues(alpha: 0.14)
       ..strokeWidth = 3
       ..strokeCap = StrokeCap.round;
-    canvas.drawLine(Offset(0, cy), Offset(size.width, cy), track);
+    canvas.drawLine(Offset(0, cy), Offset(w, cy), track);
 
     if (progress <= 0) return;
+    final px = (w * progress).clamp(0.0, w);
 
-    final glow = Paint()
+    // 1. Soft ambient gold glow around the progress line.
+    final ambient = Paint()
       ..strokeWidth = 3
       ..strokeCap = StrokeCap.round
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12)
+      ..color = const Color(0xFFE0B65C).withValues(alpha: 0.35);
+    canvas.drawLine(Offset(0, cy), Offset(px, cy), ambient);
+
+    // 2. Core gold progress line (tighter glow than before).
+    final core = Paint()
+      ..strokeWidth = 3
+      ..strokeCap = StrokeCap.round
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4)
       ..shader = const LinearGradient(
         colors: [Color(0xFF8A6A2F), Color(0xFFE0B65C)],
       ).createShader(
-        Rect.fromLTWH(0, 0, size.width * progress, size.height),
+        Rect.fromLTWH(0, 0, px, size.height),
       );
     canvas.drawLine(
       Offset(0, cy),
-      Offset(size.width * progress, cy),
-      glow,
+      Offset(px, cy),
+      core,
     );
+
+    // 3. Bright shimmer highlight traveling left to right
+    // at the head of the progress line.
+    final shimmer = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          const Color(0xFFFFF3D6).withValues(alpha: 0.85),
+          const Color(0xFFE0B65C).withValues(alpha: 0.0),
+        ],
+      ).createShader(
+        Rect.fromCircle(center: Offset(px, cy), radius: 14),
+      );
+    canvas.drawCircle(Offset(px, cy), 14, shimmer);
   }
 
   @override
