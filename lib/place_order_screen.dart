@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'category_products_screen.dart';
 import 'cart_screen.dart';
@@ -227,64 +228,77 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> {
           color: _gold.withValues(alpha: 0.35),
         ),
       ),
-      child: InkWell(
+      // ~10% frosted glass: whisper of blur + faint dark tint.
+      // Background stays clearly visible through the card.
+      child: ClipRRect(
         borderRadius: BorderRadius.circular(14),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => CategoryProductsScreen(
-                category: title,
-              ),
-            ),
-          );
-        },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 14,
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 26,
-                height: 26,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: _gold.withValues(alpha: 0.6),
-                  ),
-                ),
-                child: Center(
-                  child: Text(
-                    "$number",
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: _gold,
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 2.5, sigmaY: 2.5),
+          child: Container(
+            color: Colors.black.withValues(alpha: 0.10),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        CategoryProductsScreen(
+                      category: title,
                     ),
                   ),
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 26,
+                      height: 26,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color:
+                              _gold.withValues(alpha: 0.6),
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          "$number",
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: _gold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: _ivory,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Icon(
+                      Icons.chevron_right,
+                      color: _gold.withValues(alpha: 0.8),
+                      size: 22,
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: _ivory,
-                    letterSpacing: 0.4,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Icon(
-                Icons.chevron_right,
-                color: _gold.withValues(alpha: 0.8),
-                size: 22,
-              ),
-            ],
+            ),
           ),
         ),
       ),
