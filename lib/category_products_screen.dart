@@ -201,9 +201,10 @@ class _CategoryProductsScreenState
                         .collection("products")
                         .where(
                           "category",
-                          isEqualTo: widget.category
-                              .toLowerCase()
-                              .replaceAll(" ", "_"),
+                          // Firestore stores the display category name
+                          // (e.g. 'Zinc Cabinet Handles'), so query it
+                          // directly without snake_case transformation.
+                          isEqualTo: widget.category,
                         )
                         // Dealer app shows only Admin-activated products.
                         .where(
