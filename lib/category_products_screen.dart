@@ -287,29 +287,31 @@ class _CategoryProductsScreenState
     BuildContext context,
     Map<String, dynamic> data,
   ) {
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => ProductDetailsScreen(
-              modelNo: data["modelNo"],
-              imageUrl: data["imageUrl"],
-            ),
-          ),
-        );
-      },
-      child: Container(
-        padding:
-            const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: _gold.withValues(alpha: 0.18),
-            ),
-          ),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        // Subtle rounded outline matching the search field border.
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: _gold.withValues(alpha: 0.35),
         ),
-        child: Row(
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ProductDetailsScreen(
+                modelNo: data["modelNo"],
+                imageUrl: data["imageUrl"],
+              ),
+            ),
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
           children: [
             // Product photo — displayed exactly as provided.
             ClipRRect(
@@ -373,6 +375,7 @@ class _CategoryProductsScreenState
               size: 24,
             ),
           ],
+          ),
         ),
       ),
     );
