@@ -443,16 +443,14 @@ class _LoginScreenState extends State<LoginScreen>
             color: Colors.black.withValues(alpha: 0.28),
           ),
 
-          SafeArea(
-            // Fixed anchor: this group never moves when the keyboard
-            // opens or closes; the keyboard simply overlays the lower
-            // part of the screen if needed. The group sits at the exact
-            // vertical center of the available area.
-            child: Center(
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20),
-                child: FadeTransition(
+          // Visually centered on the full phone screen: the group's
+          // center aligns with the screen's center (not SafeArea).
+          // Fixed anchor: never moves with the keyboard.
+          Center(
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20),
+              child: FadeTransition(
                   opacity: _fadeAnimation,
                   child: SlideTransition(
                     position: _slideAnimation,
@@ -651,7 +649,6 @@ sigmaY: 0,
                 ),
                           ),
                         ),
-                      ),
 
           // Company details stay OUTSIDE the login card.
           Positioned(
