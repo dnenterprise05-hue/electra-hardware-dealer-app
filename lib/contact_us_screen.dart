@@ -87,15 +87,16 @@ class ContactUsScreen extends StatelessWidget {
                   ),
                 ),
                 Expanded(
-                  child: SingleChildScrollView(
+                  child: Padding(
                     padding: const EdgeInsets.fromLTRB(
-                        20, 8, 20, 24),
+                        20, 4, 20, 12),
                     child: Column(
+                      crossAxisAlignment:
+                          CrossAxisAlignment.stretch,
                       children: [
-                        // Push the Address card below the
-                        // background's Electra Hardware logo
-                        // so the full logo stays visible.
-                        const SizedBox(height: 170),
+                        // Address starts below the background
+                        // Electra Hardware logo.
+                        const SizedBox(height: 150),
                         _glassCard(
                           icon: Icons.location_on_outlined,
                           title: "Address",
@@ -109,7 +110,7 @@ class ContactUsScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 8),
                         _glassCard(
                           icon: Icons.support_agent_outlined,
                           title: "Customer Care",
@@ -162,7 +163,7 @@ class ContactUsScreen extends StatelessWidget {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 8),
                         _glassCard(
                           icon: Icons.email_outlined,
                           title: "Email",
@@ -173,7 +174,7 @@ class ContactUsScreen extends StatelessWidget {
                                 color: _ivory),
                           ),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 8),
                         _glassCard(
                           icon: Icons.language_outlined,
                           title: "Website",
@@ -184,17 +185,19 @@ class ContactUsScreen extends StatelessWidget {
                                 color: _ivory),
                           ),
                         ),
-                        const SizedBox(height: 22),
-                        const Text(
-                          "Connect With Us",
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: _muted,
-                            letterSpacing: 1.2,
+                        const Spacer(),
+                        const Center(
+                          child: Text(
+                            "Connect With Us",
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: _muted,
+                              letterSpacing: 1.2,
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 10),
                         Row(
                           mainAxisAlignment:
                               MainAxisAlignment.spaceEvenly,
@@ -237,7 +240,6 @@ class ContactUsScreen extends StatelessWidget {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
                       ],
                     ),
                   ),
@@ -270,7 +272,7 @@ class ContactUsScreen extends StatelessWidget {
               ImageFilter.blur(sigmaX: 2.5, sigmaY: 2.5),
           child: Container(
             color: Colors.black.withValues(alpha: 0.10),
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12),
             child: Column(
               crossAxisAlignment:
                   CrossAxisAlignment.start,
