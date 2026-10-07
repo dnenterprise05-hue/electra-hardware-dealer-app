@@ -59,7 +59,7 @@ class _ProductDetailsScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade100,
+      backgroundColor: Colors.black,
 
       appBar: AppBar(
   backgroundColor: Colors.red,

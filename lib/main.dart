@@ -44,6 +44,9 @@ class ElectraApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.red),
         useMaterial3: true,
+        // No white flash during route transitions: every Scaffold
+        // defaults to black unless it sets its own background.
+        scaffoldBackgroundColor: Colors.black,
       ),
       home: const SplashScreen(),
     );
@@ -60,6 +63,15 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
   late final AnimationController _progressController;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Decode once here so Dashboard / Place Order / Product screens
+    // never show a blank frame while the image loads mid-transition.
+    precacheImage(
+        const AssetImage('assets/login_background.png'), context);
+  }
 
   @override
   void initState() {
