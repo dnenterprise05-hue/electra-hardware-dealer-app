@@ -87,16 +87,22 @@ class ContactUsScreen extends StatelessWidget {
                   ),
                 ),
                 Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                        20, 4, 20, 12),
-                    child: Column(
-                      crossAxisAlignment:
-                          CrossAxisAlignment.stretch,
-                      children: [
-                        // Address starts below the background
-                        // Electra Hardware logo.
-                        const SizedBox(height: 150),
+                  // Dynamic layout: all spacing scales with the
+                  // actual available height — no fixed oversized
+                  // values, no scrolling.
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final h = constraints.maxHeight;
+                      return Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                            20, 0, 20, 10),
+                        child: Column(
+                          crossAxisAlignment:
+                              CrossAxisAlignment.stretch,
+                          children: [
+                            // Address starts below the background
+                            // Electra Hardware logo (21% of height).
+                            SizedBox(height: h * 0.21),
                         _glassCard(
                           icon: Icons.location_on_outlined,
                           title: "Address",
@@ -110,7 +116,7 @@ class ContactUsScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 6),
+                        SizedBox(height: h * 0.012),
                         _glassCard(
                           icon: Icons.support_agent_outlined,
                           title: "Customer Care",
@@ -163,7 +169,7 @@ class ContactUsScreen extends StatelessWidget {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 6),
+                        SizedBox(height: h * 0.012),
                         _glassCard(
                           icon: Icons.email_outlined,
                           title: "Email",
@@ -174,7 +180,7 @@ class ContactUsScreen extends StatelessWidget {
                                 color: _ivory),
                           ),
                         ),
-                        const SizedBox(height: 6),
+                        SizedBox(height: h * 0.012),
                         _glassCard(
                           icon: Icons.language_outlined,
                           title: "Website",
@@ -240,8 +246,10 @@ class ContactUsScreen extends StatelessWidget {
                             ),
                           ],
                         ),
-                      ],
-                    ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],
