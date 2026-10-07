@@ -60,16 +60,10 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
   late final AnimationController _progressController;
-  late final AnimationController _logoController;
 
   @override
   void initState() {
     super.initState();
-
-    _logoController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900),
-    )..forward();
 
     // Thin glowing progress line animates across the 2-3s splash window.
     _progressController = AnimationController(
@@ -99,7 +93,6 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void dispose() {
     _progressController.dispose();
-    _logoController.dispose();
     super.dispose();
   }
 
@@ -141,16 +134,6 @@ class _SplashScreenState extends State<SplashScreen>
           ),
           Container(
             color: Colors.black.withValues(alpha: 0.55),
-          ),
-          // Official logo, unmodified, gently fading in.
-          Center(
-            child: FadeTransition(
-              opacity: _logoController,
-              child: Image.asset(
-                'assets/logo_light.png',
-                width: 210,
-              ),
-            ),
           ),
           // Subtle premium loading line near the bottom.
           Positioned(

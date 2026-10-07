@@ -368,6 +368,7 @@ class _PinScreenState extends State<PinScreen> {
 
     return Scaffold(
       backgroundColor: Colors.black,
+      resizeToAvoidBottomInset: false,
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -379,19 +380,20 @@ class _PinScreenState extends State<PinScreen> {
           Container(
             color: Colors.black.withValues(alpha: 0.55),
           ),
-          SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      'assets/logo_light.png',
-                      width: 150,
-                    ),
-                    const SizedBox(height: 18),
-                    Text(
+          // Full-screen vertical centering, same principle as the
+          // finalized Dealer Login: the whole group is one block whose
+          // center aligns with the screen center. Fixed anchor: the
+          // keyboard overlays instead of shifting the group.
+          Positioned.fill(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 32),
+                  child: Column(
+                    children: [
+                      Text(
                       _isCreate ? 'Set Login PIN' : 'Welcome Back',
                       style: const TextStyle(
                         fontSize: 22,
@@ -562,10 +564,11 @@ class _PinScreenState extends State<PinScreen> {
                   ],
                 ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
-    );
+        ),
+      ],
+    ),
+  );
   }
 }
