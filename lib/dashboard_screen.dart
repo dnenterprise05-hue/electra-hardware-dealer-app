@@ -184,6 +184,8 @@ class DashboardScreen extends StatelessWidget {
 
                     // Breathing space: exposes the Electra logo that
                     // lives naturally inside the background image.
+                    // The whole menu group sits ~18px lower as one unit.
+                    const SizedBox(height: 18),
                     const Spacer(flex: 3),
 
                     // ================= FLOATING MENU =================
