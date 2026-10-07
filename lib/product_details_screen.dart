@@ -229,21 +229,46 @@ class _ProductDetailsScreenState
                                         alpha: 0.4),
                                   ),
                                 ),
+                                // Dark glass display case behind
+                                // the untouched product photo.
                                 child: ClipRRect(
                                   borderRadius:
                                       BorderRadius.circular(
                                           15),
-                                  child: Image.network(
-                                    widget.imageUrl,
-                                    fit: BoxFit.contain,
-                                    errorBuilder: (context,
-                                        error, stackTrace) {
-                                      return const Icon(
-                                        Icons.image,
-                                        size: 80,
-                                        color: _muted,
-                                      );
-                                    },
+                                  child: BackdropFilter(
+                                    filter:
+                                        ImageFilter.blur(
+                                            sigmaX: 2.5,
+                                            sigmaY: 2.5),
+                                    child: Container(
+                                      color: Colors.black
+                                          .withValues(
+                                              alpha:
+                                                  0.35),
+                                      child: ClipRRect(
+                                        borderRadius:
+                                            BorderRadius
+                                                .circular(
+                                                    15),
+                                        child:
+                                            Image.network(
+                                          widget.imageUrl,
+                                          fit:
+                                              BoxFit.contain,
+                                          errorBuilder:
+                                              (context,
+                                                  error,
+                                                  stackTrace) {
+                                            return const Icon(
+                                              Icons.image,
+                                              size: 80,
+                                              color:
+                                                  _muted,
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
@@ -329,39 +354,74 @@ class _ProductDetailsScreenState
                               finishes.map((finish) {
                             final selected =
                                 finish == selectedFinish;
-                            return ChoiceChip(
-                              label: Text(finish),
-                              selected: selected,
-                              backgroundColor: Colors.black
-                                  .withValues(alpha: 0.45),
-                              selectedColor: _gold
-                                  .withValues(alpha: 0.9),
-                              side: BorderSide(
-                                color: _gold.withValues(
-                                    alpha: selected
-                                        ? 0.9
-                                        : 0.35),
-                              ),
-                              shape:
-                                  RoundedRectangleBorder(
+                            // Glass colour chip — same ~10%
+                            // frost as the size panels.
+                            return Container(
+                              decoration: BoxDecoration(
                                 borderRadius:
                                     BorderRadius.circular(
                                         10),
+                                border: Border.all(
+                                  color: _gold.withValues(
+                                      alpha: selected
+                                          ? 0.9
+                                          : 0.35),
+                                ),
                               ),
-                              labelStyle: TextStyle(
-                                color: selected
-                                    ? Colors.black
-                                    : _ivory,
-                                fontWeight: selected
-                                    ? FontWeight.w700
-                                    : FontWeight.w500,
-                                fontSize: 13,
+                              child: ClipRRect(
+                                borderRadius:
+                                    BorderRadius.circular(
+                                        10),
+                                child: BackdropFilter(
+                                  filter: ImageFilter.blur(
+                                      sigmaX: 2.5,
+                                      sigmaY: 2.5),
+                                  child: Container(
+                                    color: selected
+                                        ? _gold.withValues(
+                                            alpha: 0.85)
+                                        : Colors.black
+                                            .withValues(
+                                                alpha:
+                                                    0.10),
+                                    child: InkWell(
+                                      borderRadius:
+                                          BorderRadius
+                                              .circular(
+                                                  10),
+                                      onTap: () {
+                                        setState(() {
+                                          selectedFinish =
+                                              finish;
+                                        });
+                                      },
+                                      child: Padding(
+                                        padding:
+                                            const EdgeInsets
+                                                .symmetric(
+                                          horizontal: 14,
+                                          vertical: 9,
+                                        ),
+                                        child: Text(
+                                          finish,
+                                          style: TextStyle(
+                                            color: selected
+                                                ? Colors.black
+                                                : _ivory,
+                                            fontWeight:
+                                                selected
+                                                    ? FontWeight
+                                                        .w700
+                                                    : FontWeight
+                                                        .w500,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ),
-                              onSelected: (_) {
-                                setState(() {
-                                  selectedFinish = finish;
-                                });
-                              },
                             );
                           }).toList(),
                         ),
