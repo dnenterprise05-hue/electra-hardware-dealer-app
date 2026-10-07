@@ -7,20 +7,21 @@ import 'contact_us_screen.dart';
 import 'profile_screen.dart';
 import 'favourite_screen.dart';
 
-/// Dashboard on the locked Dealer Login background.
+/// Premium floating-menu Dashboard on the locked Dealer Login background.
 ///
-/// "Dealer Login background + premium gold dashboard cards".
+/// No cards — six floating menu items over the visible luxury showroom.
 /// UI-only change. All navigation routes and dealer-data logic are
 /// unchanged from the previous implementation.
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
-  // ---- Electra gold accents (matches locked login theme) ----
-  static const _gold = Color(0xFFC9A45C);
-  static const _goldLight = Color(0xFFE9CB8B);
-  static const _textPrimary = Color(0xFFFFF8EE);
-  static const _textSecondary = Color(0xFFE4D3AC);
-  static const _textMuted = Color(0xFF9A9184);
+  // ---- Warm champagne palette (matches locked login theme) ----
+  static const _gold = Color(0xFFD8B36A);
+  static const _goldBright = Color(0xFFF3DFAE);
+  static const _goldDeep = Color(0xFF8A6A2F);
+  static const _ivory = Color(0xFFFFF8EE);
+  static const _ivorySoft = Color(0xFFE4D3AC);
+  static const _muted = Color(0xFFB9AC93);
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +39,7 @@ class DashboardScreen extends StatelessWidget {
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
-              color: _textPrimary,
+              color: _ivory,
             ),
           ),
         ),
@@ -66,7 +67,7 @@ class DashboardScreen extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: _textPrimary,
+                  color: _ivory,
                 ),
               ),
             );
@@ -83,36 +84,35 @@ class DashboardScreen extends StatelessWidget {
             fit: StackFit.expand,
             children: [
               // EXACT same background asset as the locked Dealer Login.
+              // The Electra logo inside it stays visible — no logo added.
               Image.asset(
                 'assets/login_background.png',
                 fit: BoxFit.cover,
               ),
-              // Warm showroom overlay: gradient keeps the header and
-              // cards readable while the bronze architectural lighting
-              // stays visible through the mid-screen.
+              // Gentle readability gradient: darker at top/bottom,
+              // lighter in the middle so the showroom logo breathes.
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Colors.black.withValues(alpha: 0.72),
-                      Colors.black.withValues(alpha: 0.55),
                       Colors.black.withValues(alpha: 0.62),
+                      Colors.black.withValues(alpha: 0.32),
+                      Colors.black.withValues(alpha: 0.55),
                     ],
-                    stops: const [0.0, 0.45, 1.0],
+                    stops: const [0.0, 0.5, 1.0],
                   ),
                 ),
               ),
               SafeArea(
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // ================= COMPACT HEADER =================
-                    // Dealer identity only — the brand logo lives in the
-                    // background itself, so no logo/title is added here.
                     Padding(
                       padding:
-                          const EdgeInsets.fromLTRB(24, 14, 24, 0),
+                          const EdgeInsets.fromLTRB(26, 12, 26, 0),
                       child: Column(
                         crossAxisAlignment:
                             CrossAxisAlignment.start,
@@ -120,18 +120,18 @@ class DashboardScreen extends StatelessWidget {
                           Text(
                             dealer["firmName"] ?? "",
                             style: const TextStyle(
-                              color: _textPrimary,
-                              fontSize: 21,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.4,
+                              color: _ivory,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.6,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 7),
                           Row(
                             children: [
                               const Icon(
                                 Icons.location_on_outlined,
-                                size: 14,
+                                size: 13,
                                 color: _gold,
                               ),
                               const SizedBox(width: 6),
@@ -139,43 +139,40 @@ class DashboardScreen extends StatelessWidget {
                                 child: Text(
                                   location.isEmpty ? "—" : location,
                                   style: const TextStyle(
-                                    fontSize: 13.5,
-                                    color: _textSecondary,
+                                    fontSize: 13,
+                                    color: _ivorySoft,
                                   ),
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 5),
+                          const SizedBox(height: 4),
                           Row(
                             children: [
                               const Icon(
                                 Icons.receipt_outlined,
-                                size: 14,
+                                size: 13,
                                 color: _gold,
                               ),
                               const SizedBox(width: 6),
                               Text(
                                 "GSTIN : $gst",
                                 style: const TextStyle(
-                                  fontSize: 13,
-                                  color: _textSecondary,
+                                  fontSize: 12.5,
+                                  color: _ivorySoft,
                                   letterSpacing: 0.4,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 10),
                           Container(
-                            width: 40,
+                            width: 38,
                             height: 1.5,
                             decoration: BoxDecoration(
                               gradient:
                                   const LinearGradient(
-                                colors: [
-                                  Color(0xFF8A6A2F),
-                                  Color(0xFFE9CB8B),
-                                ],
+                                colors: [_goldDeep, _goldBright],
                               ),
                               borderRadius:
                                   BorderRadius.circular(1.5),
@@ -185,104 +182,113 @@ class DashboardScreen extends StatelessWidget {
                       ),
                     ),
 
-                    const SizedBox(height: 18),
+                    // Breathing space: exposes the Electra logo that
+                    // lives naturally inside the background image.
+                    const Spacer(flex: 3),
 
-                    // ================= ACTION GRID =================
-                    // Taller cards, rows distributed across the screen.
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                            20, 0, 20, 16),
-                        child: GridView.count(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 14,
-                          mainAxisSpacing: 14,
-                          childAspectRatio: 0.92,
-                          physics:
-                              const NeverScrollableScrollPhysics(),
-                          children: [
-                            _dashboardCard(
-                              context,
-                              Icons.shopping_cart_outlined,
-                              "Place Order",
-                              isPrimary: true,
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        const PlaceOrderScreen(),
-                                  ),
-                                );
-                              },
-                            ),
-                            _dashboardCard(
-                              context,
-                              Icons.inventory_2_outlined,
-                              "My Orders",
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        const MyOrdersScreen(),
-                                  ),
-                                );
-                              },
-                            ),
-                            _dashboardCard(
-                              context,
-                              Icons
-                                  .account_balance_wallet_outlined,
-                              "Ledger",
-                              onTap: () {},
-                            ),
-                            _dashboardCard(
-                              context,
-                              Icons.favorite_border,
-                              "Favourite",
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        FavouriteScreen(),
-                                  ),
-                                );
-                              },
-                            ),
-                            _dashboardCard(
-                              context,
-                              Icons.person_outline,
-                              "Profile",
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        const ProfileScreen(),
-                                  ),
-                                );
-                              },
-                            ),
-                            _dashboardCard(
-                              context,
-                              Icons.support_agent,
-                              "Contact Us",
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        ContactUsScreen(),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
+                    // ================= FLOATING MENU =================
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 28),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              _menuItem(
+                                context,
+                                Icons.shopping_cart_outlined,
+                                "PLACE ORDER",
+                                isPrimary: true,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          const PlaceOrderScreen(),
+                                    ),
+                                  );
+                                },
+                              ),
+                              _menuItem(
+                                context,
+                                Icons.inventory_2_outlined,
+                                "MY ORDERS",
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          const MyOrdersScreen(),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 34),
+                          Row(
+                            children: [
+                              _menuItem(
+                                context,
+                                Icons
+                                    .account_balance_wallet_outlined,
+                                "LEDGER",
+                                onTap: () {},
+                              ),
+                              _menuItem(
+                                context,
+                                Icons.favorite_border,
+                                "FAVOURITE",
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          FavouriteScreen(),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 34),
+                          Row(
+                            children: [
+                              _menuItem(
+                                context,
+                                Icons.person_outline,
+                                "PROFILE",
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          const ProfileScreen(),
+                                    ),
+                                  );
+                                },
+                              ),
+                              _menuItem(
+                                context,
+                                Icons.support_agent,
+                                "CONTACT US",
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          ContactUsScreen(),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
+
+                    const Spacer(flex: 2),
                   ],
                 ),
               ),
@@ -293,81 +299,73 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  static Widget _dashboardCard(
+  /// One floating premium menu item — no card, no tile, no shadow.
+  static Widget _menuItem(
     BuildContext context,
     IconData icon,
     String title, {
     required VoidCallback onTap,
     bool isPrimary = false,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        // Dark translucent charcoal — lets the login background
-        // breathe through while keeping cards readable.
-        color: const Color(0xFF0C0A07).withValues(alpha: 0.82),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFFD8B36A).withValues(
-            alpha: isPrimary ? 0.6 : 0.28,
-          ),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.5),
-            blurRadius: 14,
-            offset: const Offset(0, 6),
-          ),
-          BoxShadow(
-            color: const Color(0xFFD8B36A).withValues(
-              alpha: isPrimary ? 0.10 : 0.05,
-            ),
-            blurRadius: 20,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: onTap,
+    final iconColor = isPrimary ? _goldBright : _gold;
+
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        // Soft rounded touch feedback, invisible at rest.
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 54,
-                height: 54,
+                width: 64,
+                height: 64,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFFD8B36A).withValues(
-                    alpha: isPrimary ? 0.14 : 0.08,
-                  ),
+                  // Whisper-thin elegant gold ring only.
                   border: Border.all(
-                    color: const Color(0xFFD8B36A).withValues(
-                      alpha: isPrimary ? 0.55 : 0.3,
+                    color: _gold.withValues(
+                      alpha: isPrimary ? 0.55 : 0.32,
                     ),
+                    width: 1,
                   ),
                 ),
                 child: Icon(
                   icon,
-                  size: 25,
-                  color: isPrimary
-                      ? const Color(0xFFF3DFAE)
-                      : const Color(0xFFD8B36A),
+                  size: 30,
+                  color: iconColor,
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               Text(
                 title,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: isPrimary
-                      ? FontWeight.w700
-                      : FontWeight.w600,
-                  color: _textPrimary,
-                  letterSpacing: 0.2,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: _ivory,
+                  letterSpacing: 1.6,
+                  shadows: isPrimary
+                      ? [
+                          Shadow(
+                            color: _gold.withValues(alpha: 0.35),
+                            blurRadius: 12,
+                          ),
+                        ]
+                      : null,
+                ),
+              ),
+              const SizedBox(height: 7),
+              Container(
+                width: 30,
+                height: 1.5,
+                decoration: BoxDecoration(
+                  color: _gold.withValues(
+                    alpha: isPrimary ? 0.85 : 0.5,
+                  ),
+                  borderRadius: BorderRadius.circular(1.5),
                 ),
               ),
             ],
