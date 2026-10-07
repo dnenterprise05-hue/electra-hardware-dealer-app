@@ -24,11 +24,11 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> {
   static const _muted = Color(0xFFB9AC93);
 
   static const _categories = [
-    ("Zinc Cabinet Handles", Icons.remove),
-    ("Aluminium Cabinet & Door Handles", Icons.door_front_door_outlined),
-    ("Zinc Mortise Handles", Icons.lock_outline),
-    ("Kadi, Knobs & Door Stoppers", Icons.circle_outlined),
-    ("Commercial Cabinet Handles", Icons.storefront_outlined),
+    "Zinc Cabinet Handles",
+    "Aluminium Cabinet & Door Handles",
+    "Zinc Mortise Handles",
+    "Kadi, Knobs & Door Stoppers",
+    "Commercial Cabinet Handles",
   ];
 
   @override
@@ -196,11 +196,10 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> {
                         28, 4, 28, 24),
                     itemCount: _categories.length,
                     itemBuilder: (context, index) {
-                      final entry = _categories[index];
                       return _categoryItem(
                         context,
-                        entry.$2,
-                        entry.$1,
+                        index + 1,
+                        _categories[index],
                       );
                     },
                   ),
@@ -217,7 +216,7 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> {
   /// same language as the product list model boxes. No fill, no shadow.
   static Widget _categoryItem(
     BuildContext context,
-    IconData icon,
+    int number,
     String title,
   ) {
     return Container(
@@ -247,7 +246,26 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> {
           ),
           child: Row(
             children: [
-              Icon(icon, size: 22, color: _gold),
+              Container(
+                width: 26,
+                height: 26,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: _gold.withValues(alpha: 0.6),
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    "$number",
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: _gold,
+                    ),
+                  ),
+                ),
+              ),
               const SizedBox(width: 14),
               Expanded(
                 child: Text(
