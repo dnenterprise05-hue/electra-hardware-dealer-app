@@ -213,61 +213,61 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> {
     );
   }
 
-  /// Premium floating category row — no card, no tile background.
+  /// Premium category box — subtle rounded champagne-gold outline,
+  /// same language as the product list model boxes. No fill, no shadow.
   static Widget _categoryItem(
     BuildContext context,
     IconData icon,
     String title,
   ) {
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CategoryProductsScreen(
-              category: title,
-            ),
-          ),
-        );
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(icon, size: 22, color: _gold),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 16.5,
-                      fontWeight: FontWeight.w500,
-                      color: _ivory,
-                      letterSpacing: 0.4,
-                    ),
-                  ),
-                ),
-                Icon(
-                  Icons.chevron_right,
-                  color: _gold.withValues(alpha: 0.8),
-                  size: 22,
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Container(
-              margin: const EdgeInsets.only(left: 36),
-              width: 34,
-              height: 1.5,
-              decoration: BoxDecoration(
-                color: _gold.withValues(alpha: 0.45),
-                borderRadius: BorderRadius.circular(1.5),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: _gold.withValues(alpha: 0.35),
+        ),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CategoryProductsScreen(
+                category: title,
               ),
             ),
-          ],
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
+          ),
+          child: Row(
+            children: [
+              Icon(icon, size: 22, color: _gold),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: _ivory,
+                    letterSpacing: 0.4,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Icon(
+                Icons.chevron_right,
+                color: _gold.withValues(alpha: 0.8),
+                size: 22,
+              ),
+            ],
+          ),
         ),
       ),
     );
