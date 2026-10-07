@@ -101,8 +101,11 @@ class ContactUsScreen extends StatelessWidget {
                               CrossAxisAlignment.stretch,
                           children: [
                             // Address starts below the background
-                            // Electra Hardware logo (21% of height).
-                            SizedBox(height: h * 0.21),
+                            // Electra Hardware logo. Extra space
+                            // stays in the logo area (invisible),
+                            // cards pack tightly toward the bottom.
+                            SizedBox(height: h * 0.18),
+                            const Spacer(),
                         _glassCard(
                           icon: Icons.location_on_outlined,
                           title: "Address",
@@ -191,7 +194,7 @@ class ContactUsScreen extends StatelessWidget {
                                 color: _ivory),
                           ),
                         ),
-                        const Spacer(),
+                        const SizedBox(height: 10),
                         const Center(
                           child: Text(
                             "Connect With Us",
