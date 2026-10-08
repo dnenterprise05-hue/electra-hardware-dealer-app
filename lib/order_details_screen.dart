@@ -110,7 +110,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       padding: const EdgeInsets.all(16),
       children: [
         Card(
-          color: Colors.white,
+          color: const Color(0xFFFFF8EE),
           elevation: 4,
           shadowColor: Colors.black12,
           shape: RoundedRectangleBorder(
@@ -180,7 +180,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       child: Text(
                         statusLabel,
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: const Color(0xFFFFF8EE),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -222,7 +222,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           final imageUrl = product["imageUrl"]?.toString() ?? "";
 
           return Card(
-            color: Colors.white,
+            color: const Color(0xFFFFF8EE),
             elevation: 4,
             shadowColor: Colors.black12,
             margin: const EdgeInsets.only(bottom: 15),
@@ -312,7 +312,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         }),
         const SizedBox(height: 10),
         Card(
-          color: Colors.white,
+          color: const Color(0xFFFFF8EE),
           elevation: 3,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),

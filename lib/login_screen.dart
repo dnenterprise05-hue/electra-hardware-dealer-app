@@ -268,7 +268,7 @@ class _LoginScreenState extends State<LoginScreen>
     return InputDecoration(
       labelText: label,
       labelStyle: const TextStyle(
-        color: Color(0xFFB8AEA2),
+        color: Color(0xFFB9AC93),
         fontSize: 14,
       ),
       floatingLabelStyle: const TextStyle(
@@ -320,7 +320,7 @@ class _LoginScreenState extends State<LoginScreen>
         child: Text(
           char,
           style: const TextStyle(
-            color: Colors.white,
+            color: const Color(0xFFFFF8EE),
             fontSize: 17,
             fontWeight: FontWeight.w700,
             letterSpacing: 0.5,
@@ -359,7 +359,7 @@ class _LoginScreenState extends State<LoginScreen>
           keyboardType: TextInputType.number,
           textInputAction: TextInputAction.next,
           style: const TextStyle(
-            color: Colors.white,
+            color: const Color(0xFFFFF8EE),
             fontSize: 17,
             fontWeight: FontWeight.w700,
             letterSpacing: 0.5,
@@ -498,7 +498,7 @@ sigmaY: 0,
                                     child: Text(
                                       'Dealer Code',
                                       style: TextStyle(
-                                        color: Color(0xFFB8AEA2),
+                                        color: Color(0xFFB9AC93),
                                         fontSize: 13,
                                         fontWeight: FontWeight.w600,
                                         letterSpacing: 0.3,
@@ -537,7 +537,7 @@ sigmaY: 0,
                                   textInputAction: TextInputAction.done,
                                   onSubmitted: (_) => login(),
                                   style: const TextStyle(
-                                    color: Colors.white,
+                                    color: const Color(0xFFFFF8EE),
                                     fontSize: 15,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -556,7 +556,7 @@ sigmaY: 0,
                                         obscurePassword
                                             ? Icons.visibility_off_outlined
                                             : Icons.visibility_outlined,
-                                        color: const Color(0xFFC5B9AB),
+                                        color: const Color(0xFFB9AC93),
                                       ),
                                     ),
                                   ),
@@ -668,7 +668,7 @@ sigmaY: 0,
                   'D N ENTERPRISE',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Colors.white,
+                    color: const Color(0xFFFFF8EE),
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 2.5,

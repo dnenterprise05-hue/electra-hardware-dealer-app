@@ -340,7 +340,7 @@ class _PinScreenState extends State<PinScreen> {
       textStyle: const TextStyle(
         fontSize: 20,
         fontWeight: FontWeight.w700,
-        color: Colors.white,
+        color: const Color(0xFFFFF8EE),
       ),
       decoration: BoxDecoration(
         color: const Color(0xFF171513).withValues(alpha: 0.72),
@@ -401,7 +401,7 @@ class _PinScreenState extends State<PinScreen> {
                       _isCreate ? 'Set Login PIN' : 'Welcome Back',
                       style: const TextStyle(
                         fontSize: 20,
-                        color: Colors.white,
+                        color: const Color(0xFFFFF8EE),
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -411,7 +411,7 @@ class _PinScreenState extends State<PinScreen> {
                         _ownerCode,
                         style: TextStyle(
                           fontSize: 14,
-                          color: const Color(0xFFC5B9AB),
+                          color: const Color(0xFFB9AC93),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -425,7 +425,7 @@ class _PinScreenState extends State<PinScreen> {
                       style: TextStyle(
                         fontSize: 14,
                         color:
-                            const Color(0xFFC5B9AB),
+                            const Color(0xFFB9AC93),
                       ),
                     ),
                     const SizedBox(height: 28),
@@ -438,7 +438,7 @@ class _PinScreenState extends State<PinScreen> {
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                            color: const Color(0xFFFFF8EE),
                           ),
                         ),
                       ),
@@ -474,7 +474,7 @@ class _PinScreenState extends State<PinScreen> {
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                            color: const Color(0xFFFFF8EE),
                           ),
                         ),
                       ),

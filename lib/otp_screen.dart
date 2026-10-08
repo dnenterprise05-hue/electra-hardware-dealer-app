@@ -211,7 +211,7 @@ class _OtpScreenState extends State<OtpScreen> {
 
                 child: loading
                     ? const CircularProgressIndicator(
-                  color: Colors.white,
+                  color: const Color(0xFFFFF8EE),
                 )
                     : const Text(
                   "VERIFY OTP",
