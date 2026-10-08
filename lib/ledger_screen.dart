@@ -186,7 +186,7 @@ class _LedgerBodyState extends State<_LedgerBody> {
               color: Colors.transparent,
               child: Container(
                 constraints: const BoxConstraints(
-                    minWidth: 100, maxWidth: 140),
+                    maxWidth: 200),
                 decoration: BoxDecoration(
                   borderRadius:
                       BorderRadius.circular(12),
@@ -239,7 +239,7 @@ class _LedgerBodyState extends State<_LedgerBody> {
       },
       child: Container(
         padding: const EdgeInsets.symmetric(
-            horizontal: 10, vertical: 5),
+            horizontal: 8, vertical: 5),
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
@@ -248,21 +248,20 @@ class _LedgerBodyState extends State<_LedgerBody> {
           ),
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Expanded(
-              child: Text(
-                'FY $fy',
-                style: TextStyle(
-                  color: selected
-                      ? _goldBright
-                      : _ivory,
-                  fontSize: 13,
-                  fontWeight: selected
-                      ? FontWeight.w700
-                      : FontWeight.w500,
-                ),
+            Text(
+              'FY $fy',
+              style: TextStyle(
+                color:
+                    selected ? _goldBright : _ivory,
+                fontSize: 13,
+                fontWeight: selected
+                    ? FontWeight.w700
+                    : FontWeight.w500,
               ),
             ),
+            const SizedBox(width: 8),
             if (selected)
               const Icon(
                 Icons.check,
