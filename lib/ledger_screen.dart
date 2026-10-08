@@ -69,52 +69,18 @@ class LedgerScreen extends StatelessWidget {
             ),
           ),
           SafeArea(
-            child: Column(
-              children: [
-                Padding(
-                  padding:
-                      const EdgeInsets.fromLTRB(8, 6, 8, 0),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(
-                          Icons.arrow_back,
-                          color: _ivory,
-                        ),
-                        onPressed: () =>
-                            Navigator.pop(context),
-                      ),
-                      const Expanded(
-                        child: Text(
-                          "DEALER LEDGER",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: _ivory,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 2.0,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 48),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: dealerDocId == null ||
-                          dealerDocId.isEmpty
-                      ? const Center(
-                          child: Text(
-                            "Dealer Not Found",
-                            style:
-                                TextStyle(color: _ivory),
-                          ),
-                        )
-                      : _LedgerBody(
-                          dealerDocId: dealerDocId),
-                ),
-              ],
-            ),
+            child: dealerDocId == null ||
+                    dealerDocId.isEmpty
+                ? const Center(
+                    child: Text(
+                      "Dealer Not Found",
+                      style: TextStyle(
+                          color:
+                              Color(0xFFFFF8EE)),
+                    ),
+                  )
+                : _LedgerBody(
+                    dealerDocId: dealerDocId),
           ),
         ],
       ),
@@ -154,23 +120,45 @@ class _Entry {
   }
 }
 
-class _LedgerBody extends StatelessWidget {
+class _LedgerBody extends StatefulWidget {
   final String dealerDocId;
 
   const _LedgerBody({required this.dealerDocId});
 
+  @override
+  State<_LedgerBody> createState() => _LedgerBodyState();
+}
+
+class _LedgerBodyState extends State<_LedgerBody> {
   static const _gold = LedgerScreen._gold;
   static const _goldBright = LedgerScreen._goldBright;
   static const _ivory = LedgerScreen._ivory;
   static const _ivorySoft = LedgerScreen._ivorySoft;
   static const _muted = LedgerScreen._muted;
 
+  /// Selected financial year, e.g. "26/27". Null until data loads.
+  String? _selectedFy;
+
+  /// Indian financial year (April–March) for a date, e.g. "26/27".
+  static String _fyOf(DateTime d) {
+    final startYear = d.month >= 4 ? d.year : d.year - 1;
+    final a = (startYear % 100).toString().padLeft(2, '0');
+    final b = ((startYear + 1) % 100).toString().padLeft(2, '0');
+    return '$a/$b';
+  }
+
+  /// First day of a financial year, e.g. "26/27" -> 2026-04-01.
+  static DateTime _fyStart(String fy) {
+    final yy = int.parse(fy.split('/')[0]);
+    return DateTime(2000 + yy, 4, 1);
+  }
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
       stream: FirebaseFirestore.instance
           .collection('dealers')
-          .doc(dealerDocId)
+          .doc(widget.dealerDocId)
           .snapshots(),
       builder: (context, dealerSnap) {
         if (dealerSnap.connectionState ==
@@ -201,7 +189,7 @@ class _LedgerBody extends StatelessWidget {
             QuerySnapshot<Map<String, dynamic>>>(
           stream: FirebaseFirestore.instance
               .collection('dealers')
-              .doc(dealerDocId)
+              .doc(widget.dealerDocId)
               .collection('ledger')
               .snapshots(),
           builder: (context, ledgerSnap) {
@@ -237,12 +225,62 @@ class _LedgerBody extends StatelessWidget {
               if (raw is num) opening = raw.toDouble();
             }
 
-            // Build the display rows: opening first, then
-            // sales/payments in date order.
+            // Display rows for the selected FY.
             final rows = <_Row>[];
-            double balance = opening;
-            if (openingEntries.isNotEmpty) {
-              final oe = openingEntries.first;
+            double balance = 0;
+            double totalSales = 0;
+            double totalPayment = 0;
+
+            // ---- Financial year filter ----
+            // Available FYs come only from actual sales/bill dates.
+            final fySet = <String>{};
+            for (final e in entries) {
+              if (e.type == 'sales') fySet.add(_fyOf(e.date));
+            }
+            final fyList = fySet.toList()..sort();
+            if (fyList.isEmpty) {
+              // No sales yet: offer the current FY so the UI stays usable.
+              fyList.add(_fyOf(DateTime.now()));
+            }
+            if (_selectedFy == null ||
+                !fyList.contains(_selectedFy)) {
+              _selectedFy = fyList.last;
+            }
+            final selFy = _selectedFy!;
+            final fyStart = _fyStart(selFy);
+            final fyEnd =
+                DateTime(fyStart.year + 1, 4, 1);
+
+            // Balance carried into the selected FY: opening +
+            // net of all transactions before the FY started.
+            double fyOpening = opening;
+            for (final e in entries) {
+              if (e.date.isBefore(fyStart)) {
+                if (e.type == 'sales') {
+                  fyOpening += e.amount;
+                } else if (e.type == 'payment') {
+                  fyOpening -= e.amount;
+                }
+              }
+            }
+
+            // Entries visible in the selected FY.
+            final fyEntries = entries
+                .where((e) =>
+                    !e.date.isBefore(fyStart) &&
+                    e.date.isBefore(fyEnd))
+                .toList();
+
+            // Rebuild display rows for the selected FY.
+            rows.clear();
+            balance = fyOpening;
+            totalSales = 0;
+            totalPayment = 0;
+            final fyOpenEntries = fyEntries
+                .where((e) => e.type == 'opening')
+                .toList();
+            if (fyOpenEntries.isNotEmpty) {
+              final oe = fyOpenEntries.first;
               rows.add(_Row(
                 date: oe.date,
                 particulars: oe.displayParticulars,
@@ -252,7 +290,7 @@ class _LedgerBody extends StatelessWidget {
                 isOpening: true,
                 type: 'opening',
               ));
-            } else if (opening != 0) {
+            } else if (fyOpening != 0) {
               rows.add(_Row(
                 date: null,
                 particulars: 'Opening Balance',
@@ -263,11 +301,8 @@ class _LedgerBody extends StatelessWidget {
                 type: 'opening',
               ));
             }
-
-            double totalSales = 0;
-            double totalPayment = 0;
-            for (final e
-                in entries.where((e) => e.type != 'opening')) {
+            for (final e in fyEntries
+                .where((e) => e.type != 'opening')) {
               if (e.type == 'sales') {
                 totalSales += e.amount;
                 balance += e.amount;
@@ -298,10 +333,15 @@ class _LedgerBody extends StatelessWidget {
             // O/S always equals the final running balance.
             final outstanding = balance;
 
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(
-                  20, 8, 20, 16),
-              child: Column(
+            return Column(
+              children: [
+                _buildHeader(fyList),
+                Expanded(
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.fromLTRB(
+                            20, 8, 20, 16),
+                    child: Column(
                 crossAxisAlignment:
                     CrossAxisAlignment.stretch,
                 children: [
@@ -418,10 +458,91 @@ class _LedgerBody extends StatelessWidget {
                   ),
                 ],
               ),
-            );
+            ),
+          ),
+        ],
+      );
           },
         );
       },
+    );
+  }
+
+  /// Header with centered title, back button left, FY dropdown right.
+  Widget _buildHeader(List<String> fyList) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 6, 8, 0),
+      child: SizedBox(
+        height: 48,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            const Text(
+              "DEALER LEDGER",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: _ivory,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 2.0,
+              ),
+            ),
+            Positioned(
+              left: 0,
+              child: IconButton(
+                icon: const Icon(
+                  Icons.arrow_back,
+                  color: _ivory,
+                ),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+            Positioned(
+              right: 8,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: _gold.withValues(alpha: 0.4),
+                  ),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: _selectedFy,
+                    dropdownColor:
+                        const Color(0xFF1A1510),
+                    style: const TextStyle(
+                      color: _goldBright,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    icon: const Icon(
+                      Icons.arrow_drop_down,
+                      color: _gold,
+                      size: 16,
+                    ),
+                    items: fyList
+                        .map((fy) => DropdownMenuItem(
+                              value: fy,
+                              child: Text('FY $fy'),
+                            ))
+                        .toList(),
+                    onChanged: (v) {
+                      if (v != null) {
+                        setState(() {
+                          _selectedFy = v;
+                        });
+                      }
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -709,11 +830,20 @@ class _LedgerBody extends StatelessWidget {
           horizontal: 8, vertical: 10),
       child: Row(
         children: [
-          _bcell('', _fDate, _muted,
-              TextAlign.center),
-          _vdiv(20),
-          _bcell('TOTAL', _fPart, _muted,
-              TextAlign.center, true),
+          // TOTAL spans DATE + PARTICULARS, centered.
+          Expanded(
+            flex: _fDate + _fPart,
+            child: const Text(
+              'TOTAL',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: _muted,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.1,
+              ),
+            ),
+          ),
           _vdiv(20),
           _bcell(
             LedgerScreen._inr.format(totalSales),
