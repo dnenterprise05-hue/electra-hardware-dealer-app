@@ -360,10 +360,10 @@ class _CartScreenState extends State<CartScreen> {
                                   ],
                                 ),
                                 const SizedBox(height: 8),
-                                // Estimate total (dealer prices).
+                                // Price summary: taxable + GST 18% + total.
                                 Builder(
                                   builder: (context) {
-                                    double estimate = 0;
+                                    double taxable = 0;
                                     bool hasPricing =
                                         false;
                                     for (final item
@@ -373,55 +373,105 @@ class _CartScreenState extends State<CartScreen> {
                                         hasPricing =
                                             true;
                                       }
-                                      estimate += item
+                                      taxable += item
                                           .estimateTotal;
                                     }
                                     if (!hasPricing) {
                                       return const SizedBox
                                           .shrink();
                                     }
+                                    taxable = taxable
+                                        .roundToDouble();
+                                    final gst =
+                                        (taxable *
+                                                18 /
+                                                100)
+                                            .roundToDouble();
+                                    final total =
+                                        taxable + gst;
+                                    final fmt =
+                                        NumberFormat
+                                            .currency(
+                                      locale: 'en_IN',
+                                      symbol: '₹',
+                                      decimalDigits: 0,
+                                    );
+                                    Widget row(
+                                        String label,
+                                        double amount,
+                                        {bool bold =
+                                            false}) {
+                                      return Padding(
+                                        padding:
+                                            const EdgeInsets
+                                                .only(
+                                                    bottom:
+                                                        6),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment
+                                                  .spaceBetween,
+                                          children: [
+                                            Text(
+                                              label,
+                                              style:
+                                                  TextStyle(
+                                                fontSize:
+                                                    14,
+                                                color: bold
+                                                    ? _ivory
+                                                    : _muted,
+                                                fontWeight: bold
+                                                    ? FontWeight
+                                                        .w700
+                                                    : FontWeight
+                                                        .w500,
+                                              ),
+                                            ),
+                                            Text(
+                                              fmt.format(
+                                                  amount),
+                                              style:
+                                                  TextStyle(
+                                                fontSize: bold
+                                                    ? 18
+                                                    : 15,
+                                                fontWeight:
+                                                    FontWeight
+                                                        .w700,
+                                                color:
+                                                    _goldBright,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }
+
                                     return Padding(
                                       padding:
                                           const EdgeInsets
                                               .only(
                                                   bottom:
                                                       8),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment
-                                                .spaceBetween,
+                                      child: Column(
                                         children: [
-                                          const Text(
-                                            "Estimate Total",
-                                            style:
-                                                TextStyle(
-                                              fontSize:
-                                                  14,
-                                              color:
-                                                  _muted,
-                                            ),
+                                          row(
+                                              "Taxable Amount",
+                                              taxable),
+                                          row("GST 18%",
+                                              gst),
+                                          const Divider(
+                                            color: _gold,
+                                            height: 12,
+                                            thickness:
+                                                0.5,
                                           ),
-                                          Text(
-                                            NumberFormat.currency(
-                                              locale:
-                                                  'en_IN',
-                                              symbol:
-                                                  '₹',
-                                              decimalDigits:
-                                                  2,
-                                            ).format(
-                                                estimate),
-                                            style:
-                                                const TextStyle(
-                                              fontSize:
-                                                  17,
-                                              fontWeight:
-                                                  FontWeight
-                                                      .w700,
-                                              color:
-                                                  _goldBright,
-                                            ),
-                                          ),
+                                          row(
+                                              "TOTAL ESTIMATE",
+                                              total,
+                                              bold:
+                                                  true),
                                         ],
                                       ),
                                     );

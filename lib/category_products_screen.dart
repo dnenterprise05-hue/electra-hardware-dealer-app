@@ -351,6 +351,7 @@ class _CategoryProductsScreenState
                       modelNo: data["modelNo"],
                       imageUrl: data["imageUrl"],
                       productData: data,
+                      category: widget.category,
                     ),
                   ),
                 );

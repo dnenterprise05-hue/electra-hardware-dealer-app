@@ -5,6 +5,7 @@ import 'widgets/pressable.dart';
 import 'models/cart_item.dart';
 import 'services/cart_service.dart';
 import 'services/dealer_service.dart';
+import 'services/pricing_service.dart';
 import 'cart_screen.dart';
 import 'services/favourite_service.dart';
 
@@ -20,11 +21,15 @@ class ProductDetailsScreen extends StatefulWidget {
   /// Full Firestore product document (may contain size-wise MRP).
   final Map<String, dynamic>? productData;
 
+  /// Product category (for category-wise discount).
+  final String? category;
+
   const ProductDetailsScreen({
     super.key,
     required this.modelNo,
     required this.imageUrl,
     this.productData,
+    this.category,
   });
 
   @override
@@ -135,6 +140,13 @@ class _ProductDetailsScreenState
     decimalDigits: 2,
   );
 
+  /// Whole-rupee formatter for final dealer prices.
+  static final _inr0 = NumberFormat.currency(
+    locale: 'en_IN',
+    symbol: '₹',
+    decimalDigits: 0,
+  );
+
   @override
   void initState() {
     super.initState();
@@ -168,26 +180,19 @@ class _ProductDetailsScreenState
       }
     }
 
-    // Dealer discount percentage.
-    try {
-      final doc = await DealerService.getDealerDoc();
-      final d = doc?.data();
-      if (d != null) {
-        final raw = d['discountPercentage'];
-        if (raw is num) _discountPct = raw.toDouble().clamp(0, 100);
-      }
-    } catch (_) {}
+    // Dealer discount: category-specific wins, else dealer's own.
+    _discountPct =
+        await PricingService.discountFor(widget.category);
 
     if (mounted) setState(() => _pricingLoaded = true);
   }
 
-  /// Dealer price for a finish+size, or null when MRP unavailable.
+  /// Dealer price per PCS: MRP minus discount, rounded to nearest
+  /// rupee. Null when MRP is unavailable.
   double? _dealerPrice(String finish, String size) {
     final mrp = _mrpFor(finish, size);
     if (mrp == null) return null;
-    final discount = mrp * _discountPct / 100;
-    // Round to 2 decimals to avoid floating-point display errors.
-    return double.parse((mrp - discount).toStringAsFixed(2));
+    return PricingService.dealerPrice(mrp, _discountPct);
   }
 
   /// Compact price display for a size row.
@@ -211,9 +216,9 @@ class _ProductDetailsScreenState
             ),
           ),
           const SizedBox(width: 8),
-          // Dealer price (prominent).
+          // Dealer price per PCS (prominent, whole rupees).
           Text(
-            _inr.format(price),
+            '${_inr0.format(price)} / PCS',
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,
