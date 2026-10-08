@@ -359,25 +359,21 @@ class _LedgerBody extends StatelessWidget {
                       crossAxisAlignment:
                           CrossAxisAlignment.stretch,
                       children: [
-                        // Horizontally scrollable table.
-                        SingleChildScrollView(
-                          scrollDirection:
-                              Axis.horizontal,
-                          child: Column(
-                            crossAxisAlignment:
-                                CrossAxisAlignment.start,
-                            children: [
-                              _tableHeader(),
-                              ...rows.map(_tableRow),
-                              _tableTotal(
-                                totalSales: totalSales,
-                                totalPayment:
-                                    totalPayment,
-                                outstanding:
-                                    outstanding,
-                              ),
-                            ],
-                          ),
+                        // All 5 columns fit the screen width.
+                        Column(
+                          crossAxisAlignment:
+                              CrossAxisAlignment.stretch,
+                          children: [
+                            _tableHeader(),
+                            ...rows.map(_tableRow),
+                            _tableTotal(
+                              totalSales: totalSales,
+                              totalPayment:
+                                  totalPayment,
+                              outstanding:
+                                  outstanding,
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -493,9 +489,13 @@ class _LedgerBody extends StatelessWidget {
 
   // ---- Transaction table ----
 
-  static const double _wDate = 92;
-  static const double _wPart = 150;
-  static const double _wAmt = 108;
+  // Flex proportions — table always fits the screen width,
+  // no horizontal scroll. Ratios match the approved compact
+  // widths (65 / 90 / 65 / 65 / 70).
+  static const int _fDate = 65;
+  static const int _fPart = 90;
+  static const int _fAmt = 65;
+  static const int _fBal = 70;
 
   static Widget _tableHeader() {
     return Container(
@@ -510,13 +510,13 @@ class _LedgerBody extends StatelessWidget {
           vertical: 10, horizontal: 12),
       child: Row(
         children: [
-          _cell('DATE', _wDate, _muted, true),
-          _cell('PARTICULARS', _wPart, _muted, true),
-          _cell('SALES (₹)', _wAmt, _gold,
+          _cell('DATE', _fDate, _muted, true),
+          _cell('PARTICULARS', _fPart, _muted, true),
+          _cell('SALES (₹)', _fAmt, _gold,
               true, TextAlign.right),
-          _cell('PAYMENT (₹)', _wAmt, _ivorySoft,
+          _cell('PAYMENT (₹)', _fAmt, _ivorySoft,
               true, TextAlign.right),
-          _cell('BALANCE (₹)', _wAmt, _goldBright,
+          _cell('BALANCE (₹)', _fBal, _goldBright,
               true, TextAlign.right),
         ],
       ),
@@ -541,16 +541,16 @@ class _LedgerBody extends StatelessWidget {
                 ? '—'
                 : LedgerScreen._dateFmt
                     .format(r.date!),
-            _wDate,
+            _fDate,
             _ivorySoft,
             false,
           ),
-          _cell(r.particulars, _wPart, _ivory, false),
+          _cell(r.particulars, _fPart, _ivory, false),
           _cell(
             r.sales > 0
                 ? LedgerScreen._inr.format(r.sales)
                 : '—',
-            _wAmt,
+            _fAmt,
             _gold,
             false,
             TextAlign.right,
@@ -559,14 +559,14 @@ class _LedgerBody extends StatelessWidget {
             r.payment > 0
                 ? LedgerScreen._inr.format(r.payment)
                 : '—',
-            _wAmt,
+            _fAmt,
             _ivorySoft,
             false,
             TextAlign.right,
           ),
           _cell(
             LedgerScreen._inr.format(r.balance),
-            _wAmt,
+            _fBal,
             _goldBright,
             true,
             TextAlign.right,
@@ -594,25 +594,25 @@ class _LedgerBody extends StatelessWidget {
           vertical: 10, horizontal: 12),
       child: Row(
         children: [
-          _cell('', _wDate, _ivory, true),
-          _cell('TOTAL', _wPart, _ivory, true),
+          _cell('', _fDate, _ivory, true),
+          _cell('TOTAL', _fPart, _ivory, true),
           _cell(
             LedgerScreen._inr.format(totalSales),
-            _wAmt,
+            _fAmt,
             _gold,
             true,
             TextAlign.right,
           ),
           _cell(
             LedgerScreen._inr.format(totalPayment),
-            _wAmt,
+            _fAmt,
             _ivorySoft,
             true,
             TextAlign.right,
           ),
           _cell(
             LedgerScreen._inr.format(outstanding),
-            _wAmt,
+            _fBal,
             _goldBright,
             true,
             TextAlign.right,
@@ -624,22 +624,23 @@ class _LedgerBody extends StatelessWidget {
 
   static Widget _cell(
     String text,
-    double width,
+    int flex,
     Color color,
     bool bold, [
     TextAlign align = TextAlign.left,
   ]) {
-    return SizedBox(
-      width: width,
+    return Expanded(
+      flex: flex,
       child: Text(
         text,
         textAlign: align,
+        overflow: TextOverflow.ellipsis,
         style: TextStyle(
           color: color,
-          fontSize: 13,
+          fontSize: 11,
           fontWeight:
               bold ? FontWeight.w700 : FontWeight.w500,
-          letterSpacing: 0.2,
+          letterSpacing: 0.1,
         ),
       ),
     );
