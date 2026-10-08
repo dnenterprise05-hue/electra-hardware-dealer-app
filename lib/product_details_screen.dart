@@ -204,49 +204,53 @@ class _ProductDetailsScreenState
 
     return Padding(
       padding: const EdgeInsets.only(top: 4),
-      child: Row(
-        children: [
-          // MRP with strike-through.
-          Text(
-            'MRP ${_inr.format(mrp)}',
-            style: const TextStyle(
-              fontSize: 12,
-              color: _muted,
-              decoration: TextDecoration.lineThrough,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.centerLeft,
+        child: Row(
+          children: [
+            // MRP with strike-through.
+            Text(
+              'MRP ${_inr.format(mrp)}',
+              style: const TextStyle(
+                fontSize: 12,
+                color: _muted,
+                decoration: TextDecoration.lineThrough,
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
-          // Dealer price per PCS (prominent, whole rupees).
-          Text(
-            '${_inr0.format(price)} / PCS',
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: _goldBright,
-            ),
-          ),
-          if (hasDiscount) ...[
             const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                  color: _gold.withValues(alpha: 0.5),
-                ),
-              ),
-              child: Text(
-                '${_discountPct.toStringAsFixed(_discountPct % 1 == 0 ? 0 : 1)}% OFF',
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: _gold,
-                ),
+            // Dealer price per PCS (prominent, whole rupees).
+            Text(
+              '${_inr0.format(price)} / PCS',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: _goldBright,
               ),
             ),
+            if (hasDiscount) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: _gold.withValues(alpha: 0.5),
+                  ),
+                ),
+                child: Text(
+                  '${_discountPct.toStringAsFixed(_discountPct % 1 == 0 ? 0 : 1)}% OFF',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: _gold,
+                  ),
+                ),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -652,13 +656,14 @@ class _ProductDetailsScreenState
                                       CrossAxisAlignment
                                           .start,
                                   children: [
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment
-                                              .start,
-                                      children: [
-                                        Text(
-                                          size,
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment
+                                                .start,
+                                        children: [
+                                          Text(
+                                            size,
                                           style: const TextStyle(
                                             fontSize:
                                                 17,
@@ -671,12 +676,14 @@ class _ProductDetailsScreenState
                                                 0.6,
                                           ),
                                         ),
-                                        _priceRow(
-                                          selectedFinish,
-                                          size,
-                                        ),
-                                      ],
+                                          _priceRow(
+                                            selectedFinish,
+                                            size,
+                                          ),
+                                        ],
+                                      ),
                                     ),
+                                    const SizedBox(width: 8),
                                     Text(
                                       "MOQ : ${moq[size]} PCS",
                                       style:
