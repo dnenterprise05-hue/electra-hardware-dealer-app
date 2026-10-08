@@ -111,21 +111,8 @@ class _ProductDetailsScreenState
     },
   };
 
-  /// Premium text colour per finish — represents the metal finish
-  /// while keeping contrast on dark glass.
-  static const Map<String, Color> _finishColors = {
-    'CP': Color(0xFFF2F2F2), // chrome — bright silver
-    'SATIN': Color(0xFFD8D8D8), // satin nickel — soft silver
-    'ANTIQUE': Color(0xFFD9B87C), // antique brass — warm gold
-    'GOLD': Color(0xFFD8B36A), // gold — app champagne gold
-    'ROSEGOLD': Color(0xFFE8B4A0), // rose gold — pink gold
-    'Z.BLACK': Color(0xFFB8B8B8), // matte black — light grey
-    'B.SATIN': Color(0xFFA8A8A8), // black satin — mid grey
-  };
-
-  /// Text colour for the currently selected finish.
-  Color get _finishColor =>
-      _finishColors[selectedFinish] ?? _ivory;
+  /// Fixed size-card text colour (CP appearance) for all finishes.
+  static const Color _finishColor = Color(0xFFF2F2F2);
 
   /// MRP lookup: finish + size -> MRP per PCS.
   /// Falls back to Firestore data, then EL 231 table.
