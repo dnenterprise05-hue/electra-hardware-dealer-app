@@ -26,11 +26,25 @@ class CartService extends ChangeNotifier {
         }
       });
 
+      // Merge prices from the new item (keep existing when present).
+      final mergedPrices =
+          Map<String, double>.from(existing.prices);
+      final mergedMrps =
+          Map<String, double>.from(existing.mrps);
+      item.prices.forEach((size, price) {
+        mergedPrices.putIfAbsent(size, () => price);
+      });
+      item.mrps.forEach((size, mrp) {
+        mergedMrps.putIfAbsent(size, () => mrp);
+      });
+
       cartItems[index] = CartItem(
         modelNo: existing.modelNo,
         imageUrl: existing.imageUrl,
         finish: existing.finish,
         quantities: updatedQty,
+        prices: mergedPrices,
+        mrps: mergedMrps,
       );
     } else {
       cartItems.add(item);

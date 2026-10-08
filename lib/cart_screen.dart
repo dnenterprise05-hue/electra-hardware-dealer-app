@@ -359,7 +359,75 @@ class _CartScreenState extends State<CartScreen> {
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 12),
+                                const SizedBox(height: 8),
+                                // Estimate total (dealer prices).
+                                Builder(
+                                  builder: (context) {
+                                    double estimate = 0;
+                                    bool hasPricing =
+                                        false;
+                                    for (final item
+                                        in items) {
+                                      if (item
+                                          .hasPricing) {
+                                        hasPricing =
+                                            true;
+                                      }
+                                      estimate += item
+                                          .estimateTotal;
+                                    }
+                                    if (!hasPricing) {
+                                      return const SizedBox
+                                          .shrink();
+                                    }
+                                    return Padding(
+                                      padding:
+                                          const EdgeInsets
+                                              .only(
+                                                  bottom:
+                                                      8),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment
+                                                .spaceBetween,
+                                        children: [
+                                          const Text(
+                                            "Estimate Total",
+                                            style:
+                                                TextStyle(
+                                              fontSize:
+                                                  14,
+                                              color:
+                                                  _muted,
+                                            ),
+                                          ),
+                                          Text(
+                                            NumberFormat.currency(
+                                              locale:
+                                                  'en_IN',
+                                              symbol:
+                                                  '₹',
+                                              decimalDigits:
+                                                  2,
+                                            ).format(
+                                                estimate),
+                                            style:
+                                                const TextStyle(
+                                              fontSize:
+                                                  17,
+                                              fontWeight:
+                                                  FontWeight
+                                                      .w700,
+                                              color:
+                                                  _goldBright,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                                const SizedBox(height: 4),
                                 SizedBox(
                                   width: double.infinity,
                                   height: 52,

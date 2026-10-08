@@ -1,8 +1,10 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'widgets/pressable.dart';
 import 'models/cart_item.dart';
 import 'services/cart_service.dart';
+import 'services/dealer_service.dart';
 import 'cart_screen.dart';
 import 'services/favourite_service.dart';
 
@@ -15,10 +17,14 @@ class ProductDetailsScreen extends StatefulWidget {
   final String modelNo;
   final String imageUrl;
 
+  /// Full Firestore product document (may contain size-wise MRP).
+  final Map<String, dynamic>? productData;
+
   const ProductDetailsScreen({
     super.key,
     required this.modelNo,
     required this.imageUrl,
+    this.productData,
   });
 
   @override
@@ -69,6 +75,130 @@ class _ProductDetailsScreenState
     "224 MM": 12,
     "288 MM": 10,
   };
+
+  /// Size-wise MRP from Firestore (null when not available).
+  final Map<String, double> _mrp = {};
+
+  /// Dealer discount percentage (0 when missing).
+  double _discountPct = 0;
+  bool _pricingLoaded = false;
+
+  static final _inr = NumberFormat.currency(
+    locale: 'en_IN',
+    symbol: '₹',
+    decimalDigits: 2,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPricing();
+  }
+
+  /// Reads size-wise MRP from the product document and the dealer's
+  /// discount percentage. Missing data is handled gracefully.
+  Future<void> _loadPricing() async {
+    // MRP per size from product document.
+    final data = widget.productData;
+    if (data != null) {
+      final sizes = data['sizes'];
+      if (sizes is List) {
+        for (final s in sizes) {
+          if (s is Map) {
+            final name = (s['size'] ?? '').toString();
+            final raw = s['mrp'];
+            if (name.isNotEmpty && raw is num) {
+              _mrp[name] = raw.toDouble();
+            }
+          }
+        }
+      }
+      // Also support flat map: {"96 MM": 100, ...}
+      final mrps = data['mrps'];
+      if (mrps is Map) {
+        mrps.forEach((k, v) {
+          if (v is num) _mrp[k.toString()] = v.toDouble();
+        });
+      }
+    }
+
+    // Dealer discount percentage.
+    try {
+      final doc = await DealerService.getDealerDoc();
+      final d = doc?.data();
+      if (d != null) {
+        final raw = d['discountPercentage'];
+        if (raw is num) _discountPct = raw.toDouble().clamp(0, 100);
+      }
+    } catch (_) {}
+
+    if (mounted) setState(() => _pricingLoaded = true);
+  }
+
+  /// Dealer price for a size, or null when MRP is unavailable.
+  double? _dealerPrice(String size) {
+    final mrp = _mrp[size];
+    if (mrp == null) return null;
+    final discount = mrp * _discountPct / 100;
+    // Round to 2 decimals to avoid floating-point display errors.
+    return double.parse((mrp - discount).toStringAsFixed(2));
+  }
+
+  /// Compact price display for a size row.
+  Widget _priceRow(String size) {
+    final mrp = _mrp[size];
+    if (mrp == null) return const SizedBox.shrink();
+    final price = _dealerPrice(size)!;
+    final hasDiscount = _discountPct > 0;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Row(
+        children: [
+          // MRP with strike-through.
+          Text(
+            'MRP ${_inr.format(mrp)}',
+            style: const TextStyle(
+              fontSize: 12,
+              color: _muted,
+              decoration: TextDecoration.lineThrough,
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Dealer price (prominent).
+          Text(
+            _inr.format(price),
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: _goldBright,
+            ),
+          ),
+          if (hasDiscount) ...[
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: _gold.withValues(alpha: 0.5),
+                ),
+              ),
+              child: Text(
+                '${_discountPct.toStringAsFixed(_discountPct % 1 == 0 ? 0 : 1)}% OFF',
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: _gold,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -467,17 +597,31 @@ class _ProductDetailsScreenState
                                   mainAxisAlignment:
                                       MainAxisAlignment
                                           .spaceBetween,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment
+                                          .start,
                                   children: [
-                                    Text(
-                                      size,
-                                      style:
-                                          const TextStyle(
-                                        fontSize: 17,
-                                        fontWeight:
-                                            FontWeight.w600,
-                                        color: _ivory,
-                                        letterSpacing: 0.6,
-                                      ),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment
+                                              .start,
+                                      children: [
+                                        Text(
+                                          size,
+                                          style: const TextStyle(
+                                            fontSize:
+                                                17,
+                                            fontWeight:
+                                                FontWeight
+                                                    .w600,
+                                            color:
+                                                _ivory,
+                                            letterSpacing:
+                                                0.6,
+                                          ),
+                                        ),
+                                        _priceRow(size),
+                                      ],
                                     ),
                                     Text(
                                       "MOQ : ${moq[size]} PCS",
@@ -699,12 +843,24 @@ class _ProductDetailsScreenState
             ElevatedButton(
               onPressed: () {
                 Navigator.pop(context);
+                final prices = <String, double>{};
+                final mrps = <String, double>{};
+                qty.forEach((size, q) {
+                  if (q > 0) {
+                    final mrp = _mrp[size];
+                    final price = _dealerPrice(size);
+                    if (mrp != null) mrps[size] = mrp;
+                    if (price != null) prices[size] = price;
+                  }
+                });
                 CartService.addToCart(
                   CartItem(
                     modelNo: widget.modelNo,
                     imageUrl: widget.imageUrl,
                     finish: selectedFinish,
                     quantities: Map.from(qty),
+                    prices: prices,
+                    mrps: mrps,
                   ),
                 );
                 setState(() {
@@ -731,12 +887,26 @@ class _ProductDetailsScreenState
       return;
     }
 
+    // Per-size dealer prices for the estimate.
+    final prices = <String, double>{};
+    final mrps = <String, double>{};
+    qty.forEach((size, q) {
+      if (q > 0) {
+        final mrp = _mrp[size];
+        final price = _dealerPrice(size);
+        if (mrp != null) mrps[size] = mrp;
+        if (price != null) prices[size] = price;
+      }
+    });
+
     CartService.addToCart(
       CartItem(
         modelNo: widget.modelNo,
         imageUrl: widget.imageUrl,
         finish: selectedFinish,
         quantities: Map.from(qty),
+        prices: prices,
+        mrps: mrps,
       ),
     );
 

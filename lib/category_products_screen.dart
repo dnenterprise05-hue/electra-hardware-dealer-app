@@ -350,6 +350,7 @@ class _CategoryProductsScreenState
                         ProductDetailsScreen(
                       modelNo: data["modelNo"],
                       imageUrl: data["imageUrl"],
+                      productData: data,
                     ),
                   ),
                 );
