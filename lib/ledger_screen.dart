@@ -179,15 +179,15 @@ class _LedgerBodyState extends State<_LedgerBody> {
             ),
           ),
           // Glass popup under the selector, kept on-screen.
+          // IntrinsicWidth forces true content shrink-wrap.
           Positioned(
             right: 12,
             top: pos.dy + size.height + 6,
             child: Material(
               color: Colors.transparent,
-              child: Container(
-                constraints: const BoxConstraints(
-                    maxWidth: 200),
-                decoration: BoxDecoration(
+              child: IntrinsicWidth(
+                child: Container(
+                  decoration: BoxDecoration(
                   borderRadius:
                       BorderRadius.circular(12),
                   border: Border.all(
@@ -220,6 +220,7 @@ class _LedgerBodyState extends State<_LedgerBody> {
                     ),
                   ),
                 ),
+              ),
               ),
             ),
           ),
