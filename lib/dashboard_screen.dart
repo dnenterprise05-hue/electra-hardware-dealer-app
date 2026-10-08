@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'ledger_screen.dart';
 import 'widgets/pressable.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'place_order_screen.dart';
@@ -236,7 +237,15 @@ class DashboardScreen extends StatelessWidget {
                                 Icons
                                     .account_balance_wallet_outlined,
                                 "LEDGER",
-                                onTap: () {},
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          const LedgerScreen(),
+                                    ),
+                                  );
+                                },
                               ),
                               _menuItem(
                                 context,
