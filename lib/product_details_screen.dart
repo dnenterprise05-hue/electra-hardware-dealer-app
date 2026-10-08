@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'widgets/pressable.dart';
 import 'models/cart_item.dart';
@@ -100,6 +101,10 @@ class _ProductDetailsScreenState
   Future<void> _loadPricing() async {
     // MRP per size from product document.
     final data = widget.productData;
+    debugPrint('[PRICING] Model: ${widget.modelNo}');
+    debugPrint('[PRICING] productData keys: ${data?.keys.toList()}');
+    debugPrint('[PRICING] sizes field: ${data?['sizes']}');
+    debugPrint('[PRICING] mrps field: ${data?['mrps']}');
     if (data != null) {
       final sizes = data['sizes'];
       if (sizes is List) {
@@ -132,6 +137,8 @@ class _ProductDetailsScreenState
       }
     } catch (_) {}
 
+    debugPrint('[PRICING] _mrp map: $_mrp');
+    debugPrint('[PRICING] discount: $_discountPct%');
     if (mounted) setState(() => _pricingLoaded = true);
   }
 
