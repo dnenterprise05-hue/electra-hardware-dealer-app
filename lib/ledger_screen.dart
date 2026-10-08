@@ -519,9 +519,9 @@ class _LedgerBody extends StatelessWidget {
   // no horizontal scroll. DATE 17 / PARTICULARS 28 /
   // SALES 18 / PAYMENT 18 / BALANCE 19.
   static const int _fDate = 17;
-  static const int _fPart = 28;
+  static const int _fPart = 29;
   static const int _fAmt = 18;
-  static const int _fBal = 19;
+  static const int _fBal = 18;
 
   static Widget _tableHeader() {
     return Container(
@@ -536,15 +536,15 @@ class _LedgerBody extends StatelessWidget {
           horizontal: 8, vertical: 10),
       child: Row(
         children: [
-          _hcell('DATE', _fDate),
+          _hcell('DATE', _fDate, TextAlign.center),
           _vdiv(18),
-          _hcell('PARTICULARS', _fPart),
+          _hcell('PARTICULARS', _fPart, TextAlign.center),
           _vdiv(18),
-          _hcell('SALES (₹)', _fAmt, TextAlign.right),
+          _hcell('SALES (₹)', _fAmt, TextAlign.center),
           _vdiv(18),
-          _hcell('PAYMENT (₹)', _fAmt, TextAlign.right),
+          _hcell('PAYMENT (₹)', _fAmt, TextAlign.center),
           _vdiv(18),
-          _hcell('BALANCE (₹)', _fBal, TextAlign.right),
+          _hcell('BALANCE (₹)', _fBal, TextAlign.center),
         ],
       ),
     );
@@ -625,9 +625,11 @@ class _LedgerBody extends StatelessWidget {
                 : LedgerScreen._dateFmt.format(r.date!),
             _fDate,
             _ivorySoft,
+            TextAlign.center,
           ),
           _vdiv(26),
-          _bcell(r.particulars, _fPart, _ivory),
+          _bcell(r.particulars, _fPart, _ivory,
+              TextAlign.center),
           _vdiv(26),
           _bcell(
             r.sales > 0
@@ -635,7 +637,7 @@ class _LedgerBody extends StatelessWidget {
                 : '—',
             _fAmt,
             _gold,
-            TextAlign.right,
+            TextAlign.center,
           ),
           _vdiv(26),
           _bcell(
@@ -644,14 +646,14 @@ class _LedgerBody extends StatelessWidget {
                 : '—',
             _fAmt,
             _ivorySoft,
-            TextAlign.right,
+            TextAlign.center,
           ),
           _vdiv(26),
           _bcell(
             LedgerScreen._inr.format(r.balance),
             _fBal,
             _goldBright,
-            TextAlign.right,
+            TextAlign.center,
             true,
           ),
         ],
@@ -707,16 +709,17 @@ class _LedgerBody extends StatelessWidget {
           horizontal: 8, vertical: 10),
       child: Row(
         children: [
-          _bcell('', _fDate, _ivory),
+          _bcell('', _fDate, _ivory,
+              TextAlign.center),
           _vdiv(20),
           _bcell('TOTAL', _fPart, _ivory,
-              TextAlign.left, true),
+              TextAlign.center, true),
           _vdiv(20),
           _bcell(
             LedgerScreen._inr.format(totalSales),
             _fAmt,
             _gold,
-            TextAlign.right,
+            TextAlign.center,
             true,
           ),
           _vdiv(20),
@@ -724,7 +727,7 @@ class _LedgerBody extends StatelessWidget {
             LedgerScreen._inr.format(totalPayment),
             _fAmt,
             _ivorySoft,
-            TextAlign.right,
+            TextAlign.center,
             true,
           ),
           _vdiv(20),
@@ -732,7 +735,7 @@ class _LedgerBody extends StatelessWidget {
             LedgerScreen._inr.format(outstanding),
             _fBal,
             _goldBright,
-            TextAlign.right,
+            TextAlign.center,
             true,
           ),
         ],
