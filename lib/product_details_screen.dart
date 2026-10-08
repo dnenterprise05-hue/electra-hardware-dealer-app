@@ -1,6 +1,5 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'widgets/pressable.dart';
 import 'models/cart_item.dart';
@@ -77,8 +76,54 @@ class _ProductDetailsScreenState
     "288 MM": 10,
   };
 
+  /// EL 231 MRP per PCS by finish and size (real prices).
+  /// Finishes not listed here use the "remaining colours" rates.
+  static const Map<String, Map<String, double>>
+      _el231Mrp = {
+    'CP': {
+      '96 MM': 190,
+      '160 MM': 310,
+      '224 MM': 425,
+      '288 MM': 590,
+    },
+    'SATIN': {
+      '96 MM': 210,
+      '160 MM': 350,
+      '224 MM': 480,
+      '288 MM': 650,
+    },
+    'ANTIQUE': {
+      '96 MM': 210,
+      '160 MM': 350,
+      '224 MM': 480,
+      '288 MM': 650,
+    },
+    '_OTHERS': {
+      '96 MM': 235,
+      '160 MM': 395,
+      '224 MM': 540,
+      '288 MM': 720,
+    },
+  };
+
+  /// MRP lookup: finish + size -> MRP per PCS.
+  /// Falls back to Firestore data, then EL 231 table.
+  double? _mrpFor(String finish, String size) {
+    // 1. Firestore size-wise MRP (if present).
+    final fs = _mrpFs[size];
+    if (fs != null) return fs;
+    // 2. EL 231 built-in table (only for EL 231).
+    if (widget.modelNo.trim().toUpperCase() ==
+        'EL 231') {
+      final byFinish =
+          _el231Mrp[finish] ?? _el231Mrp['_OTHERS'];
+      return byFinish?[size];
+    }
+    return null;
+  }
+
   /// Size-wise MRP from Firestore (null when not available).
-  final Map<String, double> _mrp = {};
+  final Map<String, double> _mrpFs = {};
 
   /// Dealer discount percentage (0 when missing).
   double _discountPct = 0;
@@ -101,10 +146,6 @@ class _ProductDetailsScreenState
   Future<void> _loadPricing() async {
     // MRP per size from product document.
     final data = widget.productData;
-    debugPrint('[PRICING] Model: ${widget.modelNo}');
-    debugPrint('[PRICING] productData keys: ${data?.keys.toList()}');
-    debugPrint('[PRICING] sizes field: ${data?['sizes']}');
-    debugPrint('[PRICING] mrps field: ${data?['mrps']}');
     if (data != null) {
       final sizes = data['sizes'];
       if (sizes is List) {
@@ -113,7 +154,7 @@ class _ProductDetailsScreenState
             final name = (s['size'] ?? '').toString();
             final raw = s['mrp'];
             if (name.isNotEmpty && raw is num) {
-              _mrp[name] = raw.toDouble();
+              _mrpFs[name] = raw.toDouble();
             }
           }
         }
@@ -122,7 +163,7 @@ class _ProductDetailsScreenState
       final mrps = data['mrps'];
       if (mrps is Map) {
         mrps.forEach((k, v) {
-          if (v is num) _mrp[k.toString()] = v.toDouble();
+          if (v is num) _mrpFs[k.toString()] = v.toDouble();
         });
       }
     }
@@ -137,14 +178,12 @@ class _ProductDetailsScreenState
       }
     } catch (_) {}
 
-    debugPrint('[PRICING] _mrp map: $_mrp');
-    debugPrint('[PRICING] discount: $_discountPct%');
     if (mounted) setState(() => _pricingLoaded = true);
   }
 
-  /// Dealer price for a size, or null when MRP is unavailable.
-  double? _dealerPrice(String size) {
-    final mrp = _mrp[size];
+  /// Dealer price for a finish+size, or null when MRP unavailable.
+  double? _dealerPrice(String finish, String size) {
+    final mrp = _mrpFor(finish, size);
     if (mrp == null) return null;
     final discount = mrp * _discountPct / 100;
     // Round to 2 decimals to avoid floating-point display errors.
@@ -152,10 +191,10 @@ class _ProductDetailsScreenState
   }
 
   /// Compact price display for a size row.
-  Widget _priceRow(String size) {
-    final mrp = _mrp[size];
+  Widget _priceRow(String finish, String size) {
+    final mrp = _mrpFor(finish, size);
     if (mrp == null) return const SizedBox.shrink();
-    final price = _dealerPrice(size)!;
+    final price = _dealerPrice(finish, size)!;
     final hasDiscount = _discountPct > 0;
 
     return Padding(
@@ -627,7 +666,10 @@ class _ProductDetailsScreenState
                                                 0.6,
                                           ),
                                         ),
-                                        _priceRow(size),
+                                        _priceRow(
+                                          selectedFinish,
+                                          size,
+                                        ),
                                       ],
                                     ),
                                     Text(
@@ -854,8 +896,10 @@ class _ProductDetailsScreenState
                 final mrps = <String, double>{};
                 qty.forEach((size, q) {
                   if (q > 0) {
-                    final mrp = _mrp[size];
-                    final price = _dealerPrice(size);
+                    final mrp =
+                        _mrpFor(selectedFinish, size);
+                    final price = _dealerPrice(
+                        selectedFinish, size);
                     if (mrp != null) mrps[size] = mrp;
                     if (price != null) prices[size] = price;
                   }
@@ -899,8 +943,9 @@ class _ProductDetailsScreenState
     final mrps = <String, double>{};
     qty.forEach((size, q) {
       if (q > 0) {
-        final mrp = _mrp[size];
-        final price = _dealerPrice(size);
+        final mrp = _mrpFor(selectedFinish, size);
+        final price =
+            _dealerPrice(selectedFinish, size);
         if (mrp != null) mrps[size] = mrp;
         if (price != null) prices[size] = price;
       }
