@@ -196,64 +196,6 @@ class _ProductDetailsScreenState
   }
 
   /// Compact price display for a size row.
-  Widget _priceRow(String finish, String size) {
-    final mrp = _mrpFor(finish, size);
-    if (mrp == null) return const SizedBox.shrink();
-    final price = _dealerPrice(finish, size)!;
-    final hasDiscount = _discountPct > 0;
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 4),
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        alignment: Alignment.centerLeft,
-        child: Row(
-          children: [
-            // MRP with strike-through.
-            Text(
-              'MRP ${_inr.format(mrp)}',
-              style: const TextStyle(
-                fontSize: 12,
-                color: _muted,
-                decoration: TextDecoration.lineThrough,
-              ),
-            ),
-            const SizedBox(width: 8),
-            // Dealer price per PCS (prominent, whole rupees).
-            Text(
-              '${_inr0.format(price)} / PCS',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: _goldBright,
-              ),
-            ),
-            if (hasDiscount) ...[
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: _gold.withValues(alpha: 0.5),
-                  ),
-                ),
-                child: Text(
-                  '${_discountPct.toStringAsFixed(_discountPct % 1 == 0 ? 0 : 1)}% OFF',
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: _gold,
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -665,8 +607,15 @@ class _ProductDetailsScreenState
   }
 
   /// Gold-outlined circular quantity button.
-  /// Premium luxury size card: size + MOQ, pricing, quantity controls.
+  /// Premium luxury size card.
+  /// Hierarchy: size + pricing (top), quantity (middle), box/moq (bottom).
+  /// Premium luxury size card.
+  /// Hierarchy: size + pricing (top), quantity (middle), box/moq (bottom).
   Widget _sizeCard(String size) {
+    final mrp = _mrpFor(selectedFinish, size);
+    final price = _dealerPrice(selectedFinish, size);
+    final hasDiscount = _discountPct > 0 && price != null;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
@@ -684,7 +633,6 @@ class _ProductDetailsScreenState
           child: Container(
             decoration: BoxDecoration(
               color: Colors.black.withValues(alpha: 0.12),
-              // Subtle inner highlight at the top.
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -715,43 +663,118 @@ class _ProductDetailsScreenState
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(
-                      18, 14, 18, 16),
+                      18, 12, 18, 14),
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
                     children: [
-                      // Size + MOQ row.
+                      // ---- TOP: size (left) + pricing (right) ----
                       Row(
-                        mainAxisAlignment:
-                            MainAxisAlignment
-                                .spaceBetween,
+                        crossAxisAlignment:
+                            CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            size,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: _ivory,
-                              letterSpacing: 1.2,
+                          // Size label.
+                          Expanded(
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.only(
+                                      top: 2),
+                              child: Text(
+                                size,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight:
+                                      FontWeight.w600,
+                                  color: _ivory,
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
                             ),
                           ),
-                          Text(
-                            "MOQ \u2022 ${moq[size]} PCS",
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: _gold,
-                              fontWeight: FontWeight.w500,
-                              letterSpacing: 0.8,
+                          // Pricing block (right-aligned).
+                          if (mrp != null &&
+                              price != null)
+                            Column(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.end,
+                              children: [
+                                // MRP with clear strike-through.
+                                Text(
+                                  'MRP ${_inr0.format(mrp)}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: _muted
+                                        .withValues(
+                                            alpha:
+                                                0.85),
+                                    decoration:
+                                        TextDecoration
+                                            .lineThrough,
+                                    decorationColor:
+                                        _muted,
+                                    decorationThickness:
+                                        1.2,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                // Dealer price (strongest).
+                                Text(
+                                  '${_inr0.format(price)} / PCS',
+                                  style:
+                                      const TextStyle(
+                                    fontSize: 17,
+                                    fontWeight:
+                                        FontWeight.w700,
+                                    color: _goldBright,
+                                    letterSpacing: 0.3,
+                                  ),
+                                ),
+                                if (hasDiscount)
+                                  Padding(
+                                    padding:
+                                        const EdgeInsets
+                                            .only(
+                                                top: 3),
+                                    child: Container(
+                                      padding: const EdgeInsets
+                                          .symmetric(
+                                              horizontal:
+                                                  7,
+                                              vertical:
+                                                  2),
+                                      decoration:
+                                          BoxDecoration(
+                                        borderRadius:
+                                            BorderRadius
+                                                .circular(
+                                                    6),
+                                        border:
+                                            Border.all(
+                                          color: _gold
+                                              .withValues(
+                                                  alpha:
+                                                      0.5),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        '${_discountPct.toStringAsFixed(_discountPct % 1 == 0 ? 0 : 1)}% OFF',
+                                        style:
+                                            const TextStyle(
+                                          fontSize: 10,
+                                          fontWeight:
+                                              FontWeight
+                                                  .w700,
+                                          color: _gold,
+                                          letterSpacing:
+                                              0.5,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
-                          ),
                         ],
                       ),
-                      const SizedBox(height: 10),
-                      // Pricing row.
-                      _priceRow(
-                          selectedFinish, size),
-                      const SizedBox(height: 14),
-                      // Quantity controls.
+                      const SizedBox(height: 12),
+                      // ---- MIDDLE: quantity controls ----
                       Row(
                         mainAxisAlignment:
                             MainAxisAlignment.spaceBetween,
@@ -803,6 +826,59 @@ class _ProductDetailsScreenState
                           ),
                         ],
                       ),
+                      const SizedBox(height: 12),
+                      // ---- BOTTOM: box qty | MOQ ----
+                      Container(
+                        padding:
+                            const EdgeInsets.symmetric(
+                                vertical: 8),
+                        decoration: BoxDecoration(
+                          border: Border(
+                            top: BorderSide(
+                              color: _gold.withValues(
+                                  alpha: 0.18),
+                            ),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'BOX QTY ${boxQty[size]} PCS',
+                                textAlign:
+                                    TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: _ivorySoft,
+                                  fontWeight:
+                                      FontWeight.w500,
+                                  letterSpacing: 0.8,
+                                ),
+                              ),
+                            ),
+                            Container(
+                              width: 1,
+                              height: 14,
+                              color: _gold.withValues(
+                                  alpha: 0.35),
+                            ),
+                            Expanded(
+                              child: Text(
+                                'MOQ ${moq[size]} PCS',
+                                textAlign:
+                                    TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: _gold,
+                                  fontWeight:
+                                      FontWeight.w600,
+                                  letterSpacing: 0.8,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -813,7 +889,6 @@ class _ProductDetailsScreenState
       ),
     );
   }
-
   static Widget _qtyButton({
     required IconData icon,
     required VoidCallback onPressed,
