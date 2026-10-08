@@ -345,7 +345,7 @@ class _PinScreenState extends State<PinScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFF171513).withValues(alpha: 0.72),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.10),
+          color: const Color(0xFFD8B36A).withValues(alpha: 0.35),
         ),
         borderRadius: BorderRadius.circular(12),
       ),
@@ -354,8 +354,8 @@ class _PinScreenState extends State<PinScreen> {
     final focusedPinTheme = defaultPinTheme.copyWith(
       decoration: defaultPinTheme.decoration!.copyWith(
         border: Border.all(
-          color: const Color(0xFFE0B65C),
-          width: 2,
+          color: const Color(0xFFD8B36A),
+          width: 1.5,
         ),
       ),
     );
@@ -363,7 +363,7 @@ class _PinScreenState extends State<PinScreen> {
     final submittedPinTheme = defaultPinTheme.copyWith(
       decoration: defaultPinTheme.decoration!.copyWith(
         border: Border.all(
-          color: const Color(0xFFE0B65C).withValues(alpha: 0.55),
+          color: const Color(0xFFD8B36A).withValues(alpha: 0.55),
         ),
       ),
     );

@@ -139,6 +139,145 @@ class _LedgerBodyState extends State<_LedgerBody> {
   /// Selected financial year, e.g. "26/27". Null until data loads.
   String? _selectedFy;
 
+  /// Custom FY popup overlay (glass card).
+  OverlayEntry? _fyOverlay;
+  final GlobalKey _fyKey = GlobalKey();
+
+  @override
+  void dispose() {
+    _removeFyMenu();
+    super.dispose();
+  }
+
+  void _removeFyMenu() {
+    _fyOverlay?.remove();
+    _fyOverlay = null;
+  }
+
+  /// Toggles the premium glass FY selector popup.
+  void _toggleFyMenu(List<String> fyList) {
+    if (_fyOverlay != null) {
+      _removeFyMenu();
+      return;
+    }
+    final box =
+        _fyKey.currentContext?.findRenderObject()
+            as RenderBox?;
+    if (box == null) return;
+    final pos = box.localToGlobal(Offset.zero);
+    final size = box.size;
+
+    _fyOverlay = OverlayEntry(
+      builder: (_) => Stack(
+        children: [
+          // Tap outside to dismiss.
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _removeFyMenu,
+              child: const SizedBox.shrink(),
+            ),
+          ),
+          // Glass popup under the selector, kept on-screen.
+          Positioned(
+            right: 12,
+            top: pos.dy + size.height + 6,
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                constraints: const BoxConstraints(
+                    minWidth: 140, maxWidth: 180),
+                decoration: BoxDecoration(
+                  borderRadius:
+                      BorderRadius.circular(12),
+                  border: Border.all(
+                    color:
+                        _gold.withValues(alpha: 0.45),
+                  ),
+                ),
+                child: ClipRRect(
+                  borderRadius:
+                      BorderRadius.circular(12),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(
+                        sigmaX: 8, sigmaY: 8),
+                    child: Container(
+                      color: Colors.black.withValues(
+                          alpha: 0.78),
+                      padding:
+                          const EdgeInsets.symmetric(
+                              vertical: 4),
+                      child: Column(
+                        mainAxisSize:
+                            MainAxisSize.min,
+                        crossAxisAlignment:
+                            CrossAxisAlignment
+                                .stretch,
+                        children: fyList
+                            .map(
+                              (fy) =>
+                                  _fyMenuItem(fy),
+                            )
+                            .toList(),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    Overlay.of(context).insert(_fyOverlay!);
+  }
+
+  /// One FY option row in the glass popup.
+  Widget _fyMenuItem(String fy) {
+    final selected = fy == _selectedFy;
+    return InkWell(
+      onTap: () {
+        setState(() => _selectedFy = fy);
+        _removeFyMenu();
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+            horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: _gold.withValues(alpha: 0.12),
+            ),
+          ),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                'FY $fy',
+                style: TextStyle(
+                  color: selected
+                      ? _goldBright
+                      : _ivory,
+                  fontSize: 13,
+                  fontWeight: selected
+                      ? FontWeight.w700
+                      : FontWeight.w500,
+                ),
+              ),
+            ),
+            if (selected)
+              const Icon(
+                Icons.check,
+                color: _gold,
+                size: 16,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   /// Indian financial year (April–March) for a date, e.g. "26/27".
   static String _fyOf(DateTime d) {
     final startYear = d.month >= 4 ? d.year : d.year - 1;
@@ -508,54 +647,46 @@ class _LedgerBodyState extends State<_LedgerBody> {
                 ),
               ),
             ),
-            // Right zone: compact FY dropdown.
+            // Right zone: compact FY selector (glass popup).
             SizedBox(
               width: 96,
               child: Align(
                 alignment: Alignment.centerRight,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 6, vertical: 1),
-                  decoration: BoxDecoration(
-                    borderRadius:
-                        BorderRadius.circular(8),
-                    border: Border.all(
-                      color:
-                          _gold.withValues(alpha: 0.4),
+                child: GestureDetector(
+                  key: _fyKey,
+                  onTap: () => _toggleFyMenu(fyList),
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 5),
+                    decoration: BoxDecoration(
+                      borderRadius:
+                          BorderRadius.circular(8),
+                      border: Border.all(
+                        color: _gold.withValues(
+                            alpha: 0.4),
+                      ),
                     ),
-                  ),
-                  child:
-                      DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: _selectedFy,
-                      isDense: true,
-                      dropdownColor:
-                          const Color(0xFF1A1510),
-                      style: const TextStyle(
-                        color: _goldBright,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      icon: const Icon(
-                        Icons.arrow_drop_down,
-                        color: _gold,
-                        size: 14,
-                      ),
-                      items: fyList
-                          .map((fy) =>
-                              DropdownMenuItem(
-                                value: fy,
-                                child:
-                                    Text('FY $fy'),
-                              ))
-                          .toList(),
-                      onChanged: (v) {
-                        if (v != null) {
-                          setState(() {
-                            _selectedFy = v;
-                          });
-                        }
-                      },
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'FY $_selectedFy',
+                          style: const TextStyle(
+                            color: _goldBright,
+                            fontSize: 11,
+                            fontWeight:
+                                FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(width: 2),
+                        const Icon(
+                          Icons.arrow_drop_down,
+                          color: _gold,
+                          size: 14,
+                        ),
+                      ],
                     ),
                   ),
                 ),

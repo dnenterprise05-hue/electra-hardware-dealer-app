@@ -291,13 +291,13 @@ class _LoginScreenState extends State<LoginScreen>
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(15),
         borderSide: BorderSide(
-          color: Colors.white.withValues(alpha: 0.10),
+          color: const Color(0xFFD8B36A).withValues(alpha: 0.35),
         ),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(15),
         borderSide: const BorderSide(
-          color: Color(0xFFD9AD52),
+          color: Color(0xFFD8B36A),
           width: 1.2,
         ),
       ),
@@ -314,7 +314,7 @@ class _LoginScreenState extends State<LoginScreen>
           color: const Color(0xFF171513).withValues(alpha: 0.72),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: Colors.white.withValues(alpha: 0.10),
+            color: const Color(0xFFD8B36A).withValues(alpha: 0.35),
           ),
         ),
         child: Text(
@@ -405,13 +405,13 @@ class _LoginScreenState extends State<LoginScreen>
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: Colors.white.withValues(alpha: 0.10),
+                color: const Color(0xFFD8B36A).withValues(alpha: 0.35),
               ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(
-                color: Color(0xFFD9AD52),
+                color: Color(0xFFD8B36A),
                 width: 1.2,
               ),
             ),
