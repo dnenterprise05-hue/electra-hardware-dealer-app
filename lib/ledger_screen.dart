@@ -532,22 +532,19 @@ class _LedgerBody extends StatelessWidget {
           ),
         ),
       ),
-      padding: const EdgeInsets.symmetric(
-          vertical: 10, horizontal: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Row(
+        crossAxisAlignment:
+            CrossAxisAlignment.stretch,
         children: [
           _cell('DATE', _fDate, _muted, true),
-          _vSep(),
           _cell('PARTICULARS', _fPart, _muted, true),
-          _vSep(),
-          _cell('SALES (₹)', _fAmt, _gold,
+          _cell('SALES (₹)', _fAmt, _muted,
               true, TextAlign.right),
-          _vSep(),
-          _cell('PAYMENT (₹)', _fAmt, _ivorySoft,
+          _cell('PAYMENT (₹)', _fAmt, _muted,
               true, TextAlign.right),
-          _vSep(),
-          _cell('BALANCE (₹)', _fBal, _goldBright,
-              true, TextAlign.right),
+          _cell('BALANCE (₹)', _fBal, _muted,
+              true, TextAlign.right, true),
         ],
       ),
     );
@@ -565,9 +562,10 @@ class _LedgerBody extends StatelessWidget {
           ),
         ),
       ),
-      padding: const EdgeInsets.symmetric(
-          vertical: 9, horizontal: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Row(
+        crossAxisAlignment:
+            CrossAxisAlignment.stretch,
         children: [
           _cell(
             r.date == null
@@ -578,9 +576,7 @@ class _LedgerBody extends StatelessWidget {
             _ivorySoft,
             false,
           ),
-          _vSep(),
           _cell(r.particulars, _fPart, _ivory, false),
-          _vSep(),
           _cell(
             r.sales > 0
                 ? LedgerScreen._inr.format(r.sales)
@@ -590,7 +586,6 @@ class _LedgerBody extends StatelessWidget {
             false,
             TextAlign.right,
           ),
-          _vSep(),
           _cell(
             r.payment > 0
                 ? LedgerScreen._inr.format(r.payment)
@@ -600,13 +595,13 @@ class _LedgerBody extends StatelessWidget {
             false,
             TextAlign.right,
           ),
-          _vSep(),
           _cell(
             LedgerScreen._inr.format(r.balance),
             _fBal,
             _goldBright,
             true,
             TextAlign.right,
+            true,
           ),
         ],
       ),
@@ -643,15 +638,6 @@ class _LedgerBody extends StatelessWidget {
     );
   }
 
-  /// Thin champagne-gold vertical column separator.
-  static Widget _vSep() {
-    return Container(
-      width: 1,
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      color: _gold.withValues(alpha: 0.18),
-    );
-  }
-
   static Widget _tableTotal({
     required double totalSales,
     required double totalPayment,
@@ -666,14 +652,13 @@ class _LedgerBody extends StatelessWidget {
           ),
         ),
       ),
-      padding: const EdgeInsets.symmetric(
-          vertical: 10, horizontal: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Row(
+        crossAxisAlignment:
+            CrossAxisAlignment.stretch,
         children: [
           _cell('', _fDate, _ivory, true),
-          _vSep(),
           _cell('TOTAL', _fPart, _ivory, true),
-          _vSep(),
           _cell(
             LedgerScreen._inr.format(totalSales),
             _fAmt,
@@ -681,7 +666,6 @@ class _LedgerBody extends StatelessWidget {
             true,
             TextAlign.right,
           ),
-          _vSep(),
           _cell(
             LedgerScreen._inr.format(totalPayment),
             _fAmt,
@@ -689,13 +673,13 @@ class _LedgerBody extends StatelessWidget {
             true,
             TextAlign.right,
           ),
-          _vSep(),
           _cell(
             LedgerScreen._inr.format(outstanding),
             _fBal,
             _goldBright,
             true,
             TextAlign.right,
+            true,
           ),
         ],
       ),
@@ -708,19 +692,42 @@ class _LedgerBody extends StatelessWidget {
     Color color,
     bool bold, [
     TextAlign align = TextAlign.left,
+    bool last = false,
   ]) {
     return Expanded(
       flex: flex,
-      child: Text(
-        text,
-        textAlign: align,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          color: color,
-          fontSize: 11,
-          fontWeight:
-              bold ? FontWeight.w700 : FontWeight.w500,
-          letterSpacing: 0.1,
+      child: Container(
+        // Continuous vertical grid line (not on last column).
+        decoration: BoxDecoration(
+          border: last
+              ? null
+              : Border(
+                  right: BorderSide(
+                    color:
+                        _gold.withValues(alpha: 0.18),
+                  ),
+                ),
+        ),
+        padding: const EdgeInsets.symmetric(
+            horizontal: 5, vertical: 9),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: align == TextAlign.right
+              ? Alignment.centerRight
+              : Alignment.centerLeft,
+          child: Text(
+            text,
+            textAlign: align,
+            softWrap: false,
+            style: TextStyle(
+              color: color,
+              fontSize: 11,
+              fontWeight: bold
+                  ? FontWeight.w700
+                  : FontWeight.w500,
+              letterSpacing: 0.1,
+            ),
+          ),
         ),
       ),
     );
