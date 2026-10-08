@@ -666,7 +666,7 @@ class _ProductDetailsScreenState
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(
-                      18, 10, 18, 12),
+                      16, 6, 16, 8),
                   child: Column(
                     children: [
                       // ---- TOP: size (left) + pricing (right) ----
@@ -700,7 +700,7 @@ class _ProductDetailsScreenState
                             Padding(
                               padding:
                                   const EdgeInsets.only(
-                                      top: 3),
+                                      top: 2),
                               child: Column(
                               crossAxisAlignment:
                                   CrossAxisAlignment.end,
@@ -712,7 +712,7 @@ class _ProductDetailsScreenState
                                     // MRP with clear
                                     // strike-through.
                                     Text(
-                                      'MRP ${_inr0.format(mrp)}',
+                                      'MRP : ${_inr0.format(mrp)}',
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: _finishColor,
@@ -769,7 +769,7 @@ class _ProductDetailsScreenState
                                     ],
                                   ],
                                 ),
-                                const SizedBox(height: 3),
+                                const SizedBox(height: 2),
                                 // Dealer price (strongest).
                                 RichText(
                                   text: TextSpan(
@@ -780,7 +780,7 @@ class _ProductDetailsScreenState
                                                 price),
                                         style:
                                             TextStyle(
-                                          fontSize: 16,
+                                          fontSize: 14,
                                           fontWeight:
                                               FontWeight
                                                   .w700,
@@ -794,7 +794,7 @@ class _ProductDetailsScreenState
                                         text: ' / PCS',
                                         style:
                                             TextStyle(
-                                          fontSize: 11,
+                                          fontSize: 14,
                                           fontWeight:
                                               FontWeight
                                                   .w500,
@@ -810,7 +810,7 @@ class _ProductDetailsScreenState
                             ),
                         ],
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       // ---- MIDDLE: quantity controls ----
                       Row(
                         mainAxisAlignment:
@@ -865,12 +865,12 @@ class _ProductDetailsScreenState
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       // ---- BOTTOM: box qty | MOQ ----
                       Container(
                         padding:
                             const EdgeInsets.only(
-                                top: 10, bottom: 8),
+                                top: 6, bottom: 6),
                         decoration: BoxDecoration(
                           border: Border(
                             top: BorderSide(
@@ -883,7 +883,7 @@ class _ProductDetailsScreenState
                           children: [
                             Expanded(
                               child: Text(
-                                'BOX QTY ${boxQty[size]} PCS',
+                                'BOX QTY : ${boxQty[size]} PCS',
                                 textAlign:
                                     TextAlign.center,
                                 style: TextStyle(
@@ -903,7 +903,7 @@ class _ProductDetailsScreenState
                             ),
                             Expanded(
                               child: Text(
-                                'MOQ ${moq[size]} PCS',
+                                'MOQ : ${moq[size]} PCS',
                                 textAlign:
                                     TextAlign.center,
                                 style: TextStyle(
