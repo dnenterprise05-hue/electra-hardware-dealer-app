@@ -301,8 +301,8 @@ class _CategoryProductsScreenState
                           final data =
                               products[index].data()
                                   as Map<String, dynamic>;
-                          return _productRow(
-                              context, data);
+                          return _productRow(context,
+                              data, widget.category);
                         },
                       );
                     },
@@ -321,6 +321,7 @@ class _CategoryProductsScreenState
   static Widget _productRow(
     BuildContext context,
     Map<String, dynamic> data,
+    String category,
   ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -351,7 +352,7 @@ class _CategoryProductsScreenState
                       modelNo: data["modelNo"],
                       imageUrl: data["imageUrl"],
                       productData: data,
-                      category: widget.category,
+                      category: category,
                     ),
                   ),
                 );
