@@ -690,85 +690,117 @@ class _ProductDetailsScreenState
                             ),
                           ),
                           // Pricing block (right-aligned).
+                          // Row 1: MRP + OFF badge.
+                          // Row 2: dealer price.
                           if (mrp != null &&
                               price != null)
                             Column(
                               crossAxisAlignment:
                                   CrossAxisAlignment.end,
                               children: [
-                                // MRP with clear strike-through.
-                                Text(
-                                  'MRP ${_inr0.format(mrp)}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: _muted
-                                        .withValues(
-                                            alpha:
-                                                0.85),
-                                    decoration:
-                                        TextDecoration
-                                            .lineThrough,
-                                    decorationColor:
-                                        _muted,
-                                    decorationThickness:
-                                        1.2,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                // Dealer price (strongest).
-                                Text(
-                                  '${_inr0.format(price)} / PCS',
-                                  style:
-                                      const TextStyle(
-                                    fontSize: 17,
-                                    fontWeight:
-                                        FontWeight.w700,
-                                    color: _goldBright,
-                                    letterSpacing: 0.3,
-                                  ),
-                                ),
-                                if (hasDiscount)
-                                  Padding(
-                                    padding:
-                                        const EdgeInsets
-                                            .only(
-                                                top: 3),
-                                    child: Container(
-                                      padding: const EdgeInsets
-                                          .symmetric(
-                                              horizontal:
-                                                  7,
-                                              vertical:
-                                                  2),
-                                      decoration:
-                                          BoxDecoration(
-                                        borderRadius:
-                                            BorderRadius
-                                                .circular(
-                                                    6),
-                                        border:
-                                            Border.all(
-                                          color: _gold
-                                              .withValues(
-                                                  alpha:
-                                                      0.5),
+                                Row(
+                                  mainAxisSize:
+                                      MainAxisSize.min,
+                                  children: [
+                                    // MRP with clear
+                                    // strike-through.
+                                    Text(
+                                      'MRP ${_inr0.format(mrp)}',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: _muted
+                                            .withValues(
+                                                alpha:
+                                                    0.85),
+                                        decoration:
+                                            TextDecoration
+                                                .lineThrough,
+                                        decorationColor:
+                                            _muted,
+                                        decorationThickness:
+                                            1.2,
+                                      ),
+                                    ),
+                                    if (hasDiscount) ...[
+                                      const SizedBox(
+                                          width: 6),
+                                      Container(
+                                        padding:
+                                            const EdgeInsets
+                                                .symmetric(
+                                                    horizontal:
+                                                        6,
+                                                    vertical:
+                                                        1),
+                                        decoration:
+                                            BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius
+                                                  .circular(
+                                                      5),
+                                          border:
+                                              Border
+                                                  .all(
+                                            color: _gold
+                                                .withValues(
+                                                    alpha:
+                                                        0.5),
+                                          ),
+                                        ),
+                                        child: Text(
+                                          '${_discountPct.toStringAsFixed(_discountPct % 1 == 0 ? 0 : 1)}% OFF',
+                                          style:
+                                              const TextStyle(
+                                            fontSize: 10,
+                                            fontWeight:
+                                                FontWeight
+                                                    .w700,
+                                            color:
+                                                _gold,
+                                            letterSpacing:
+                                                0.5,
+                                          ),
                                         ),
                                       ),
-                                      child: Text(
-                                        '${_discountPct.toStringAsFixed(_discountPct % 1 == 0 ? 0 : 1)}% OFF',
+                                    ],
+                                  ],
+                                ),
+                                const SizedBox(height: 3),
+                                // Dealer price (strongest).
+                                RichText(
+                                  text: TextSpan(
+                                    children: [
+                                      TextSpan(
+                                        text: _inr0
+                                            .format(
+                                                price),
                                         style:
                                             const TextStyle(
-                                          fontSize: 10,
+                                          fontSize: 18,
                                           fontWeight:
                                               FontWeight
                                                   .w700,
-                                          color: _gold,
+                                          color:
+                                              _ivory,
                                           letterSpacing:
-                                              0.5,
+                                              0.3,
                                         ),
                                       ),
-                                    ),
+                                      const TextSpan(
+                                        text: ' / PCS',
+                                        style:
+                                            TextStyle(
+                                          fontSize: 11,
+                                          fontWeight:
+                                              FontWeight
+                                                  .w500,
+                                          color:
+                                              _ivorySoft,
+                                        ),
+                                      ),
+                                    ],
                                   ),
+                                ),
                               ],
                             ),
                         ],
