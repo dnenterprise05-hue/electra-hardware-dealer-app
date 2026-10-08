@@ -111,6 +111,22 @@ class _ProductDetailsScreenState
     },
   };
 
+  /// Premium text colour per finish — represents the metal finish
+  /// while keeping contrast on dark glass.
+  static const Map<String, Color> _finishColors = {
+    'CP': Color(0xFFF2F2F2), // chrome — bright silver
+    'SATIN': Color(0xFFD8D8D8), // satin nickel — soft silver
+    'ANTIQUE': Color(0xFFD9B87C), // antique brass — warm gold
+    'GOLD': Color(0xFFD8B36A), // gold — app champagne gold
+    'ROSEGOLD': Color(0xFFE8B4A0), // rose gold — pink gold
+    'Z.BLACK': Color(0xFFB8B8B8), // matte black — light grey
+    'B.SATIN': Color(0xFFA8A8A8), // black satin — mid grey
+  };
+
+  /// Text colour for the currently selected finish.
+  Color get _finishColor =>
+      _finishColors[selectedFinish] ?? _ivory;
+
   /// MRP lookup: finish + size -> MRP per PCS.
   /// Falls back to Firestore data, then EL 231 table.
   double? _mrpFor(String finish, String size) {
@@ -679,11 +695,11 @@ class _ProductDetailsScreenState
                                       top: 2),
                               child: Text(
                                 size,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 16,
                                   fontWeight:
                                       FontWeight.w600,
-                                  color: _ivory,
+                                  color: _finishColor,
                                   letterSpacing: 1.2,
                                 ),
                               ),
@@ -708,7 +724,7 @@ class _ProductDetailsScreenState
                                       'MRP ${_inr0.format(mrp)}',
                                       style: TextStyle(
                                         fontSize: 12,
-                                        color: _muted
+                                        color: _finishColor
                                             .withValues(
                                                 alpha:
                                                     0.85),
@@ -750,13 +766,13 @@ class _ProductDetailsScreenState
                                         child: Text(
                                           '${_discountPct.toStringAsFixed(_discountPct % 1 == 0 ? 0 : 1)}% OFF',
                                           style:
-                                              const TextStyle(
+                                              TextStyle(
                                             fontSize: 10,
                                             fontWeight:
                                                 FontWeight
                                                     .w700,
                                             color:
-                                                _gold,
+                                                _finishColor,
                                             letterSpacing:
                                                 0.5,
                                           ),
@@ -775,18 +791,18 @@ class _ProductDetailsScreenState
                                             .format(
                                                 price),
                                         style:
-                                            const TextStyle(
+                                            TextStyle(
                                           fontSize: 18,
                                           fontWeight:
                                               FontWeight
                                                   .w700,
                                           color:
-                                              _ivory,
+                                              _finishColor,
                                           letterSpacing:
                                               0.3,
                                         ),
                                       ),
-                                      const TextSpan(
+                                      TextSpan(
                                         text: ' / PCS',
                                         style:
                                             TextStyle(
@@ -795,7 +811,10 @@ class _ProductDetailsScreenState
                                               FontWeight
                                                   .w500,
                                           color:
-                                              _ivorySoft,
+                                              _finishColor
+                                                  .withValues(
+                                                      alpha:
+                                                          0.85),
                                         ),
                                       ),
                                     ],
@@ -813,6 +832,7 @@ class _ProductDetailsScreenState
                         children: [
                           _qtyButton(
                             icon: Icons.remove,
+                            iconColor: _finishColor,
                             onPressed: () {
                               setState(() {
                                 if (qty[size] == 0) {
@@ -832,16 +852,17 @@ class _ProductDetailsScreenState
                           ),
                           Text(
                             qty[size].toString(),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 20,
                               fontWeight:
                                   FontWeight.w700,
-                              color: _ivory,
+                              color: _finishColor,
                               letterSpacing: 0.5,
                             ),
                           ),
                           _qtyButton(
                             icon: Icons.add,
+                            iconColor: _finishColor,
                             onPressed: () {
                               setState(() {
                                 if (qty[size] == 0) {
@@ -879,9 +900,9 @@ class _ProductDetailsScreenState
                                 'BOX QTY ${boxQty[size]} PCS',
                                 textAlign:
                                     TextAlign.center,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 11,
-                                  color: _ivorySoft,
+                                  color: _finishColor,
                                   fontWeight:
                                       FontWeight.w500,
                                   letterSpacing: 0.8,
@@ -899,9 +920,9 @@ class _ProductDetailsScreenState
                                 'MOQ ${moq[size]} PCS',
                                 textAlign:
                                     TextAlign.center,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 11,
-                                  color: _gold,
+                                  color: _finishColor,
                                   fontWeight:
                                       FontWeight.w600,
                                   letterSpacing: 0.8,
@@ -924,7 +945,9 @@ class _ProductDetailsScreenState
   static Widget _qtyButton({
     required IconData icon,
     required VoidCallback onPressed,
+    Color? iconColor,
   }) {
+    final ic = iconColor ?? _gold;
     return Pressable(
       onTap: onPressed,
       borderRadius: BorderRadius.circular(24),
@@ -938,7 +961,7 @@ class _ProductDetailsScreenState
             width: 1,
           ),
         ),
-        child: Icon(icon, color: _gold, size: 18),
+        child: Icon(icon, color: ic, size: 18),
       ),
     );
   }
