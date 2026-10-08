@@ -666,7 +666,7 @@ class _ProductDetailsScreenState
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(
-                      18, 12, 18, 14),
+                      18, 10, 18, 12),
                   child: Column(
                     children: [
                       // ---- TOP: size (left) + pricing (right) ----
@@ -697,7 +697,11 @@ class _ProductDetailsScreenState
                           // Row 2: dealer price.
                           if (mrp != null &&
                               price != null)
-                            Column(
+                            Padding(
+                              padding:
+                                  const EdgeInsets.only(
+                                      top: 3),
+                              child: Column(
                               crossAxisAlignment:
                                   CrossAxisAlignment.end,
                               children: [
@@ -711,10 +715,7 @@ class _ProductDetailsScreenState
                                       'MRP ${_inr0.format(mrp)}',
                                       style: TextStyle(
                                         fontSize: 12,
-                                        color: _finishColor
-                                            .withValues(
-                                                alpha:
-                                                    0.85),
+                                        color: _finishColor,
                                         decoration:
                                             TextDecoration
                                                 .lineThrough,
@@ -779,7 +780,7 @@ class _ProductDetailsScreenState
                                                 price),
                                         style:
                                             TextStyle(
-                                          fontSize: 18,
+                                          fontSize: 16,
                                           fontWeight:
                                               FontWeight
                                                   .w700,
@@ -798,20 +799,18 @@ class _ProductDetailsScreenState
                                               FontWeight
                                                   .w500,
                                           color:
-                                              _finishColor
-                                                  .withValues(
-                                                      alpha:
-                                                          0.85),
+                                              _finishColor,
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
                               ],
+                              ),
                             ),
                         ],
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
                       // ---- MIDDLE: quantity controls ----
                       Row(
                         mainAxisAlignment:
@@ -866,12 +865,12 @@ class _ProductDetailsScreenState
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
                       // ---- BOTTOM: box qty | MOQ ----
                       Container(
                         padding:
-                            const EdgeInsets.symmetric(
-                                vertical: 8),
+                            const EdgeInsets.only(
+                                top: 10, bottom: 8),
                         decoration: BoxDecoration(
                           border: Border(
                             top: BorderSide(
