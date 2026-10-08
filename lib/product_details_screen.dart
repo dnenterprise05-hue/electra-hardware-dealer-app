@@ -615,151 +615,8 @@ class _ProductDetailsScreenState
 
                         // ---------- SIZES + QUANTITY ----------
                         ...qty.keys.map((size) {
-                          return Container(
-                            margin: const EdgeInsets.only(
-                                bottom: 12),
-                            decoration: BoxDecoration(
-                              borderRadius:
-                                  BorderRadius.circular(
-                                      14),
-                              border: Border.all(
-                                color: _gold.withValues(
-                                    alpha: 0.3),
-                              ),
-                            ),
-                            // ~10% frosted glass, same as the
-                            // rest of the Place Order flow.
-                            child: ClipRRect(
-                              borderRadius:
-                                  BorderRadius.circular(
-                                      14),
-                              child: BackdropFilter(
-                                filter: ImageFilter.blur(
-                                    sigmaX: 2.5,
-                                    sigmaY: 2.5),
-                                child: Container(
-                                  color: Colors.black
-                                      .withValues(
-                                          alpha: 0.10),
-                                  padding:
-                                      const EdgeInsets
-                                          .all(16),
-                                  child: Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment
-                                          .spaceBetween,
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment
-                                          .start,
-                                  children: [
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment
-                                                .start,
-                                        children: [
-                                          Text(
-                                            size,
-                                          style: const TextStyle(
-                                            fontSize:
-                                                17,
-                                            fontWeight:
-                                                FontWeight
-                                                    .w600,
-                                            color:
-                                                _ivory,
-                                            letterSpacing:
-                                                0.6,
-                                          ),
-                                        ),
-                                          _priceRow(
-                                            selectedFinish,
-                                            size,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      "MOQ : ${moq[size]} PCS",
-                                      style:
-                                          const TextStyle(
-                                        fontSize: 13,
-                                        color: _gold,
-                                        fontWeight:
-                                            FontWeight.w600,
-                                        letterSpacing: 0.4,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment
-                                          .spaceBetween,
-                                  children: [
-                                    _qtyButton(
-                                      icon: Icons.remove,
-                                      onPressed: () {
-                                        setState(() {
-                                          if (qty[size] ==
-                                              0) {
-                                            return;
-                                          }
-                                          if (qty[size] ==
-                                              moq[size]) {
-                                            qty[size] = 0;
-                                          } else {
-                                            qty[size] =
-                                                qty[size]! -
-                                                    boxQty[
-                                                        size]!;
-                                          }
-                                        });
-                                      },
-                                    ),
-                                    Text(
-                                      qty[size].toString(),
-                                      style:
-                                          const TextStyle(
-                                        fontSize: 22,
-                                        fontWeight:
-                                            FontWeight.w700,
-                                        color: _ivory,
-                                      ),
-                                    ),
-                                    _qtyButton(
-                                      icon: Icons.add,
-                                      onPressed: () {
-                                        setState(() {
-                                          if (qty[size] ==
-                                              0) {
-                                            qty[size] =
-                                                moq[size]!;
-                                          } else {
-                                            qty[size] =
-                                                qty[size]! +
-                                                    boxQty[
-                                                        size]!;
-                                          }
-                                        });
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
+                          return _sizeCard(size);
                         }),
-
                         const SizedBox(height: 20),
 
                         // ---------- ADD TO CART ----------
@@ -808,6 +665,155 @@ class _ProductDetailsScreenState
   }
 
   /// Gold-outlined circular quantity button.
+  /// Premium luxury size card: size + MOQ, pricing, quantity controls.
+  Widget _sizeCard(String size) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: _gold.withValues(alpha: 0.28),
+          width: 1,
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: BackdropFilter(
+          filter:
+              ImageFilter.blur(sigmaX: 2.5, sigmaY: 2.5),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.12),
+              // Subtle inner highlight at the top.
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.white.withValues(alpha: 0.04),
+                  Colors.transparent,
+                  Colors.transparent,
+                ],
+                stops: const [0.0, 0.25, 1.0],
+              ),
+            ),
+            child: Column(
+              children: [
+                // Subtle champagne accent line at the top.
+                Container(
+                  height: 1,
+                  margin: const EdgeInsets.symmetric(
+                      horizontal: 20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.transparent,
+                        _gold.withValues(alpha: 0.35),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                      18, 14, 18, 16),
+                  child: Column(
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start,
+                    children: [
+                      // Size + MOQ row.
+                      Row(
+                        mainAxisAlignment:
+                            MainAxisAlignment
+                                .spaceBetween,
+                        children: [
+                          Text(
+                            size,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: _ivory,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                          Text(
+                            "MOQ \u2022 ${moq[size]} PCS",
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: _gold,
+                              fontWeight: FontWeight.w500,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      // Pricing row.
+                      _priceRow(
+                          selectedFinish, size),
+                      const SizedBox(height: 14),
+                      // Quantity controls.
+                      Row(
+                        mainAxisAlignment:
+                            MainAxisAlignment.spaceBetween,
+                        children: [
+                          _qtyButton(
+                            icon: Icons.remove,
+                            onPressed: () {
+                              setState(() {
+                                if (qty[size] == 0) {
+                                  return;
+                                }
+                                if (qty[size] ==
+                                    moq[size]) {
+                                  qty[size] = 0;
+                                } else {
+                                  qty[size] =
+                                      qty[size]! -
+                                          boxQty[
+                                              size]!;
+                                }
+                              });
+                            },
+                          ),
+                          Text(
+                            qty[size].toString(),
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight:
+                                  FontWeight.w700,
+                              color: _ivory,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          _qtyButton(
+                            icon: Icons.add,
+                            onPressed: () {
+                              setState(() {
+                                if (qty[size] == 0) {
+                                  qty[size] =
+                                      moq[size]!;
+                                } else {
+                                  qty[size] =
+                                      qty[size]! +
+                                          boxQty[
+                                              size]!;
+                                }
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   static Widget _qtyButton({
     required IconData icon,
     required VoidCallback onPressed,
@@ -816,15 +822,16 @@ class _ProductDetailsScreenState
       onTap: onPressed,
       borderRadius: BorderRadius.circular(24),
       child: Container(
-        width: 44,
-        height: 44,
+        width: 40,
+        height: 40,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(
-            color: _gold.withValues(alpha: 0.55),
+            color: _gold.withValues(alpha: 0.45),
+            width: 1,
           ),
         ),
-        child: Icon(icon, color: _gold, size: 20),
+        child: Icon(icon, color: _gold, size: 18),
       ),
     );
   }
