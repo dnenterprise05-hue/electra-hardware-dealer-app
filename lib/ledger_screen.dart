@@ -468,74 +468,95 @@ class _LedgerBodyState extends State<_LedgerBody> {
     );
   }
 
-  /// Header with centered title, back button left, FY dropdown right.
+  /// Header: back (left) | DEALER LEDGER (center) | FY (right).
+  /// Both side zones share the same fixed width so the title stays
+  /// perfectly screen-centered regardless of dropdown width.
   Widget _buildHeader(List<String> fyList) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 6, 8, 0),
+      padding: const EdgeInsets.fromLTRB(4, 6, 12, 0),
       child: SizedBox(
         height: 48,
-        child: Stack(
-          alignment: Alignment.center,
+        child: Row(
           children: [
-            const Text(
-              "DEALER LEDGER",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: _ivory,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 2.0,
-              ),
-            ),
-            Positioned(
-              left: 0,
-              child: IconButton(
-                icon: const Icon(
-                  Icons.arrow_back,
-                  color: _ivory,
-                ),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ),
-            Positioned(
-              right: 8,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: _gold.withValues(alpha: 0.4),
+            // Left zone: single back button.
+            SizedBox(
+              width: 96,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: IconButton(
+                  icon: const Icon(
+                    Icons.arrow_back,
+                    color: _ivory,
                   ),
+                  onPressed: () => Navigator.pop(context),
                 ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: _selectedFy,
-                    dropdownColor:
-                        const Color(0xFF1A1510),
-                    style: const TextStyle(
-                      color: _goldBright,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+              ),
+            ),
+            // Center: title, always screen-centered.
+            const Expanded(
+              child: Text(
+                "DEALER LEDGER",
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                softWrap: false,
+                overflow: TextOverflow.visible,
+                style: TextStyle(
+                  color: _ivory,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 2.0,
+                ),
+              ),
+            ),
+            // Right zone: compact FY dropdown.
+            SizedBox(
+              width: 96,
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 6, vertical: 1),
+                  decoration: BoxDecoration(
+                    borderRadius:
+                        BorderRadius.circular(8),
+                    border: Border.all(
+                      color:
+                          _gold.withValues(alpha: 0.4),
                     ),
-                    icon: const Icon(
-                      Icons.arrow_drop_down,
-                      color: _gold,
-                      size: 16,
+                  ),
+                  child:
+                      DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: _selectedFy,
+                      isDense: true,
+                      dropdownColor:
+                          const Color(0xFF1A1510),
+                      style: const TextStyle(
+                        color: _goldBright,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      icon: const Icon(
+                        Icons.arrow_drop_down,
+                        color: _gold,
+                        size: 14,
+                      ),
+                      items: fyList
+                          .map((fy) =>
+                              DropdownMenuItem(
+                                value: fy,
+                                child:
+                                    Text('FY $fy'),
+                              ))
+                          .toList(),
+                      onChanged: (v) {
+                        if (v != null) {
+                          setState(() {
+                            _selectedFy = v;
+                          });
+                        }
+                      },
                     ),
-                    items: fyList
-                        .map((fy) => DropdownMenuItem(
-                              value: fy,
-                              child: Text('FY $fy'),
-                            ))
-                        .toList(),
-                    onChanged: (v) {
-                      if (v != null) {
-                        setState(() {
-                          _selectedFy = v;
-                        });
-                      }
-                    },
                   ),
                 ),
               ),
