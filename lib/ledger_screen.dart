@@ -186,7 +186,7 @@ class _LedgerBodyState extends State<_LedgerBody> {
               color: Colors.transparent,
               child: Container(
                 constraints: const BoxConstraints(
-                    minWidth: 140, maxWidth: 180),
+                    minWidth: 120, maxWidth: 160),
                 decoration: BoxDecoration(
                   borderRadius:
                       BorderRadius.circular(12),
@@ -204,9 +204,6 @@ class _LedgerBodyState extends State<_LedgerBody> {
                     child: Container(
                       color: Colors.black.withValues(
                           alpha: 0.78),
-                      padding:
-                          const EdgeInsets.symmetric(
-                              vertical: 4),
                       child: Column(
                         mainAxisSize:
                             MainAxisSize.min,
@@ -242,7 +239,7 @@ class _LedgerBodyState extends State<_LedgerBody> {
       },
       child: Container(
         padding: const EdgeInsets.symmetric(
-            horizontal: 14, vertical: 10),
+            horizontal: 12, vertical: 7),
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
