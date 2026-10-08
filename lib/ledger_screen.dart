@@ -537,14 +537,16 @@ class _LedgerBody extends StatelessWidget {
         crossAxisAlignment:
             CrossAxisAlignment.stretch,
         children: [
-          _cell('DATE', _fDate, _muted, true),
-          _cell('PARTICULARS', _fPart, _muted, true),
-          _cell('SALES (₹)', _fAmt, _muted,
-              true, TextAlign.right),
-          _cell('PAYMENT (₹)', _fAmt, _muted,
-              true, TextAlign.right),
-          _cell('BALANCE (₹)', _fBal, _muted,
-              true, TextAlign.right, true),
+          _cell('DATE', _fDate, _muted, true,
+              TextAlign.left, false, true),
+          _cell('PARTICULARS', _fPart, _muted, true,
+              TextAlign.left, false, true),
+          _cell('SALES (₹)', _fAmt, _muted, true,
+              TextAlign.right, false, true),
+          _cell('PAYMENT (₹)', _fAmt, _muted, true,
+              TextAlign.right, false, true),
+          _cell('BALANCE (₹)', _fBal, _muted, true,
+              TextAlign.right, true, true),
         ],
       ),
     );
@@ -693,6 +695,7 @@ class _LedgerBody extends StatelessWidget {
     bool bold, [
     TextAlign align = TextAlign.left,
     bool last = false,
+    bool isHeader = false,
   ]) {
     return Expanded(
       flex: flex,
@@ -708,25 +711,21 @@ class _LedgerBody extends StatelessWidget {
                   ),
                 ),
         ),
-        padding: const EdgeInsets.symmetric(
-            horizontal: 5, vertical: 9),
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: align == TextAlign.right
-              ? Alignment.centerRight
-              : Alignment.centerLeft,
-          child: Text(
-            text,
-            textAlign: align,
-            softWrap: false,
-            style: TextStyle(
-              color: color,
-              fontSize: 11,
-              fontWeight: bold
-                  ? FontWeight.w700
-                  : FontWeight.w500,
-              letterSpacing: 0.1,
-            ),
+        padding: EdgeInsets.symmetric(
+            horizontal: 5,
+            vertical: isHeader ? 10 : 9),
+        child: Text(
+          text,
+          textAlign: align,
+          softWrap: false,
+          overflow: TextOverflow.visible,
+          style: TextStyle(
+            color: color,
+            fontSize: isHeader ? 9 : 11,
+            fontWeight: bold
+                ? FontWeight.w700
+                : FontWeight.w500,
+            letterSpacing: 0.1,
           ),
         ),
       ),
