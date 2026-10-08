@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'services/dealer_service.dart';
 import 'widgets/pressable.dart';
+import 'order_details_screen.dart';
 
 /// Dealer Ledger — luxury showroom theme.
 ///
@@ -128,6 +129,7 @@ class _Entry {
   final double amount;
   final DateTime date;
   final DateTime createdAt;
+  final String? reference;
 
   _Entry({
     required this.type,
@@ -135,7 +137,21 @@ class _Entry {
     required this.amount,
     required this.date,
     required this.createdAt,
+    this.reference,
   });
+
+  /// Display label: "Bill No. X" / "Receipt No. X" when a
+  /// reference exists, otherwise the generic particulars.
+  String get displayParticulars {
+    final ref = reference?.trim() ?? '';
+    if (type == 'sales') {
+      return ref.isNotEmpty ? 'Bill No. $ref' : particulars;
+    }
+    if (type == 'payment') {
+      return ref.isNotEmpty ? 'Receipt No. $ref' : particulars;
+    }
+    return particulars;
+  }
 }
 
 class _LedgerBody extends StatelessWidget {
@@ -226,14 +242,15 @@ class _LedgerBody extends StatelessWidget {
             final rows = <_Row>[];
             double balance = opening;
             if (openingEntries.isNotEmpty) {
+              final oe = openingEntries.first;
               rows.add(_Row(
-                date: openingEntries.first.date,
-                particulars:
-                    openingEntries.first.particulars,
+                date: oe.date,
+                particulars: oe.displayParticulars,
                 sales: 0,
                 payment: 0,
                 balance: balance,
                 isOpening: true,
+                type: 'opening',
               ));
             } else if (opening != 0) {
               rows.add(_Row(
@@ -243,6 +260,7 @@ class _LedgerBody extends StatelessWidget {
                 payment: 0,
                 balance: balance,
                 isOpening: true,
+                type: 'opening',
               ));
             }
 
@@ -255,20 +273,24 @@ class _LedgerBody extends StatelessWidget {
                 balance += e.amount;
                 rows.add(_Row(
                   date: e.date,
-                  particulars: e.particulars,
+                  particulars: e.displayParticulars,
                   sales: e.amount,
                   payment: 0,
                   balance: balance,
+                  reference: e.reference,
+                  type: 'sales',
                 ));
               } else if (e.type == 'payment') {
                 totalPayment += e.amount;
                 balance -= e.amount;
                 rows.add(_Row(
                   date: e.date,
-                  particulars: e.particulars,
+                  particulars: e.displayParticulars,
                   sales: 0,
                   payment: e.amount,
                   balance: balance,
+                  reference: e.reference,
+                  type: 'payment',
                 ));
               }
             }
@@ -276,9 +298,9 @@ class _LedgerBody extends StatelessWidget {
             // O/S always equals the final running balance.
             final outstanding = balance;
 
-            return SingleChildScrollView(
+            return Padding(
               padding: const EdgeInsets.fromLTRB(
-                  20, 8, 20, 24),
+                  20, 8, 20, 16),
               child: Column(
                 crossAxisAlignment:
                     CrossAxisAlignment.stretch,
@@ -353,44 +375,47 @@ class _LedgerBody extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  _glassPanel(
-                    padding: EdgeInsets.zero,
-                    child: Column(
-                      crossAxisAlignment:
-                          CrossAxisAlignment.stretch,
-                      children: [
-                        // All 5 columns fit the screen width.
-                        Column(
-                          crossAxisAlignment:
-                              CrossAxisAlignment.stretch,
-                          children: [
-                            _tableHeader(),
-                            ...rows.map(_tableRow),
-                            _tableTotal(
-                              totalSales: totalSales,
-                              totalPayment:
-                                  totalPayment,
-                              outstanding:
-                                  outstanding,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (rows.isEmpty)
-                    const Padding(
-                      padding:
-                          EdgeInsets.only(top: 24),
-                      child: Center(
-                        child: Text(
-                          'No transactions yet',
-                          style: TextStyle(
-                              color: _muted,
-                              fontSize: 14),
-                        ),
+                  // Ledger table: fixed header, scrollable rows,
+                  // fixed total. Dealer info + O/S stay visible.
+                  Expanded(
+                    child: _glassPanel(
+                      padding: EdgeInsets.zero,
+                      child: Column(
+                        crossAxisAlignment:
+                            CrossAxisAlignment.stretch,
+                        children: [
+                          _tableHeader(),
+                          Expanded(
+                            child: rows.isEmpty
+                                ? const Center(
+                                    child: Text(
+                                      'No transactions yet',
+                                      style: TextStyle(
+                                          color: _muted,
+                                          fontSize: 14),
+                                    ),
+                                  )
+                                : ListView.builder(
+                                    padding:
+                                        EdgeInsets.zero,
+                                    itemCount: rows.length,
+                                    itemBuilder:
+                                        (context, index) =>
+                                            _tableRow(
+                                                context,
+                                                rows[
+                                                    index]),
+                                  ),
+                          ),
+                          _tableTotal(
+                            totalSales: totalSales,
+                            totalPayment: totalPayment,
+                            outstanding: outstanding,
+                          ),
+                        ],
                       ),
                     ),
+                  ),
                 ],
               ),
             );
@@ -426,6 +451,7 @@ class _LedgerBody extends StatelessWidget {
       amount: amount,
       date: readDate(data['date']),
       createdAt: readDate(data['createdAt']),
+      reference: (data['reference'] as String?)?.trim(),
     );
   }
 
@@ -490,12 +516,12 @@ class _LedgerBody extends StatelessWidget {
   // ---- Transaction table ----
 
   // Flex proportions — table always fits the screen width,
-  // no horizontal scroll. Ratios match the approved compact
-  // widths (65 / 90 / 65 / 65 / 70).
-  static const int _fDate = 65;
-  static const int _fPart = 90;
-  static const int _fAmt = 65;
-  static const int _fBal = 70;
+  // no horizontal scroll. DATE 17 / PARTICULARS 28 /
+  // SALES 18 / PAYMENT 18 / BALANCE 19.
+  static const int _fDate = 17;
+  static const int _fPart = 28;
+  static const int _fAmt = 18;
+  static const int _fBal = 19;
 
   static Widget _tableHeader() {
     return Container(
@@ -507,15 +533,19 @@ class _LedgerBody extends StatelessWidget {
         ),
       ),
       padding: const EdgeInsets.symmetric(
-          vertical: 10, horizontal: 12),
+          vertical: 10, horizontal: 8),
       child: Row(
         children: [
           _cell('DATE', _fDate, _muted, true),
+          _vSep(),
           _cell('PARTICULARS', _fPart, _muted, true),
+          _vSep(),
           _cell('SALES (₹)', _fAmt, _gold,
               true, TextAlign.right),
+          _vSep(),
           _cell('PAYMENT (₹)', _fAmt, _ivorySoft,
               true, TextAlign.right),
+          _vSep(),
           _cell('BALANCE (₹)', _fBal, _goldBright,
               true, TextAlign.right),
         ],
@@ -523,8 +553,11 @@ class _LedgerBody extends StatelessWidget {
     );
   }
 
-  static Widget _tableRow(_Row r) {
-    return Container(
+  static Widget _tableRow(BuildContext context, _Row r) {
+    final tappable = (r.reference?.isNotEmpty ?? false) &&
+        (r.type == 'sales' || r.type == 'payment');
+
+    Widget row = Container(
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
@@ -533,7 +566,7 @@ class _LedgerBody extends StatelessWidget {
         ),
       ),
       padding: const EdgeInsets.symmetric(
-          vertical: 9, horizontal: 12),
+          vertical: 9, horizontal: 8),
       child: Row(
         children: [
           _cell(
@@ -545,7 +578,9 @@ class _LedgerBody extends StatelessWidget {
             _ivorySoft,
             false,
           ),
+          _vSep(),
           _cell(r.particulars, _fPart, _ivory, false),
+          _vSep(),
           _cell(
             r.sales > 0
                 ? LedgerScreen._inr.format(r.sales)
@@ -555,6 +590,7 @@ class _LedgerBody extends StatelessWidget {
             false,
             TextAlign.right,
           ),
+          _vSep(),
           _cell(
             r.payment > 0
                 ? LedgerScreen._inr.format(r.payment)
@@ -564,6 +600,7 @@ class _LedgerBody extends StatelessWidget {
             false,
             TextAlign.right,
           ),
+          _vSep(),
           _cell(
             LedgerScreen._inr.format(r.balance),
             _fBal,
@@ -573,6 +610,45 @@ class _LedgerBody extends StatelessWidget {
           ),
         ],
       ),
+    );
+
+    if (!tappable) return row;
+
+    // Tapping a bill/receipt row opens the matching order when
+    // one exists; otherwise the tap is a silent no-op.
+    return Pressable(
+      onTap: () async {
+        final ref = r.reference!.trim();
+        try {
+          final snap = await FirebaseFirestore.instance
+              .collection('orders')
+              .where('orderNo', isEqualTo: ref)
+              .limit(1)
+              .get();
+          if (snap.docs.isNotEmpty && context.mounted) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => OrderDetailsScreen(
+                  order: snap.docs.first.data(),
+                ),
+              ),
+            );
+          }
+        } catch (_) {
+          // Non-breaking: keep the row inert on any failure.
+        }
+      },
+      child: row,
+    );
+  }
+
+  /// Thin champagne-gold vertical column separator.
+  static Widget _vSep() {
+    return Container(
+      width: 1,
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      color: _gold.withValues(alpha: 0.18),
     );
   }
 
@@ -591,11 +667,13 @@ class _LedgerBody extends StatelessWidget {
         ),
       ),
       padding: const EdgeInsets.symmetric(
-          vertical: 10, horizontal: 12),
+          vertical: 10, horizontal: 8),
       child: Row(
         children: [
           _cell('', _fDate, _ivory, true),
+          _vSep(),
           _cell('TOTAL', _fPart, _ivory, true),
+          _vSep(),
           _cell(
             LedgerScreen._inr.format(totalSales),
             _fAmt,
@@ -603,6 +681,7 @@ class _LedgerBody extends StatelessWidget {
             true,
             TextAlign.right,
           ),
+          _vSep(),
           _cell(
             LedgerScreen._inr.format(totalPayment),
             _fAmt,
@@ -610,6 +689,7 @@ class _LedgerBody extends StatelessWidget {
             true,
             TextAlign.right,
           ),
+          _vSep(),
           _cell(
             LedgerScreen._inr.format(outstanding),
             _fBal,
@@ -655,6 +735,8 @@ class _Row {
   final double payment;
   final double balance;
   final bool isOpening;
+  final String? reference;
+  final String type;
 
   _Row({
     required this.date,
@@ -663,5 +745,7 @@ class _Row {
     required this.payment,
     required this.balance,
     this.isOpening = false,
+    this.reference,
+    this.type = '',
   });
 }
