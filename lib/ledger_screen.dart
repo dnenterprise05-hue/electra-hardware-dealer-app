@@ -532,23 +532,74 @@ class _LedgerBody extends StatelessWidget {
           ),
         ),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.symmetric(
+          horizontal: 8, vertical: 10),
       child: Row(
-        crossAxisAlignment:
-            CrossAxisAlignment.stretch,
         children: [
-          _cell('DATE', _fDate, _muted, true,
-              TextAlign.left, false, true),
-          _cell('PARTICULARS', _fPart, _muted, true,
-              TextAlign.left, false, true),
-          _cell('SALES (₹)', _fAmt, _muted, true,
-              TextAlign.right, false, true),
-          _cell('PAYMENT (₹)', _fAmt, _muted, true,
-              TextAlign.right, false, true),
-          _cell('BALANCE (₹)', _fBal, _muted, true,
-              TextAlign.right, true, true),
+          _hcell('DATE', _fDate),
+          _vdiv(18),
+          _hcell('PARTICULARS', _fPart),
+          _vdiv(18),
+          _hcell('SALES (₹)', _fAmt, TextAlign.right),
+          _vdiv(18),
+          _hcell('PAYMENT (₹)', _fAmt, TextAlign.right),
+          _vdiv(18),
+          _hcell('BALANCE (₹)', _fBal, TextAlign.right),
         ],
       ),
+    );
+  }
+
+  /// Header cell — 9px champagne, never truncated.
+  static Widget _hcell(String text, int flex,
+      [TextAlign align = TextAlign.left]) {
+    return Expanded(
+      flex: flex,
+      child: Text(
+        text,
+        textAlign: align,
+        maxLines: 1,
+        softWrap: false,
+        overflow: TextOverflow.visible,
+        style: const TextStyle(
+          color: _muted,
+          fontSize: 9,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.3,
+        ),
+      ),
+    );
+  }
+
+  /// Body cell — 11px ivory, single line.
+  static Widget _bcell(String text, int flex, Color color,
+      [TextAlign align = TextAlign.left,
+      bool bold = false]) {
+    return Expanded(
+      flex: flex,
+      child: Text(
+        text,
+        textAlign: align,
+        maxLines: 1,
+        softWrap: false,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          color: color,
+          fontSize: 11,
+          fontWeight:
+              bold ? FontWeight.w700 : FontWeight.w500,
+        ),
+      ),
+    );
+  }
+
+  /// Thin vertical grid separator (fixed height, no layout loop).
+  static Widget _vdiv(double height) {
+    return Container(
+      width: 1,
+      height: height,
+      margin: const EdgeInsets.symmetric(horizontal: 3),
+      color: _gold.withValues(alpha: 0.18),
     );
   }
 
@@ -564,44 +615,42 @@ class _LedgerBody extends StatelessWidget {
           ),
         ),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 4),
+      padding: const EdgeInsets.symmetric(
+          horizontal: 8, vertical: 9),
       child: Row(
-        crossAxisAlignment:
-            CrossAxisAlignment.stretch,
         children: [
-          _cell(
+          _bcell(
             r.date == null
                 ? '—'
-                : LedgerScreen._dateFmt
-                    .format(r.date!),
+                : LedgerScreen._dateFmt.format(r.date!),
             _fDate,
             _ivorySoft,
-            false,
           ),
-          _cell(r.particulars, _fPart, _ivory, false),
-          _cell(
+          _vdiv(26),
+          _bcell(r.particulars, _fPart, _ivory),
+          _vdiv(26),
+          _bcell(
             r.sales > 0
                 ? LedgerScreen._inr.format(r.sales)
                 : '—',
             _fAmt,
             _gold,
-            false,
             TextAlign.right,
           ),
-          _cell(
+          _vdiv(26),
+          _bcell(
             r.payment > 0
                 ? LedgerScreen._inr.format(r.payment)
                 : '—',
             _fAmt,
             _ivorySoft,
-            false,
             TextAlign.right,
           ),
-          _cell(
+          _vdiv(26),
+          _bcell(
             LedgerScreen._inr.format(r.balance),
             _fBal,
             _goldBright,
-            true,
             TextAlign.right,
             true,
           ),
@@ -654,80 +703,39 @@ class _LedgerBody extends StatelessWidget {
           ),
         ),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 4),
+      padding: const EdgeInsets.symmetric(
+          horizontal: 8, vertical: 10),
       child: Row(
-        crossAxisAlignment:
-            CrossAxisAlignment.stretch,
         children: [
-          _cell('', _fDate, _ivory, true),
-          _cell('TOTAL', _fPart, _ivory, true),
-          _cell(
+          _bcell('', _fDate, _ivory),
+          _vdiv(20),
+          _bcell('TOTAL', _fPart, _ivory,
+              TextAlign.left, true),
+          _vdiv(20),
+          _bcell(
             LedgerScreen._inr.format(totalSales),
             _fAmt,
             _gold,
-            true,
             TextAlign.right,
+            true,
           ),
-          _cell(
+          _vdiv(20),
+          _bcell(
             LedgerScreen._inr.format(totalPayment),
             _fAmt,
             _ivorySoft,
-            true,
             TextAlign.right,
+            true,
           ),
-          _cell(
+          _vdiv(20),
+          _bcell(
             LedgerScreen._inr.format(outstanding),
             _fBal,
             _goldBright,
-            true,
             TextAlign.right,
             true,
           ),
         ],
-      ),
-    );
-  }
-
-  static Widget _cell(
-    String text,
-    int flex,
-    Color color,
-    bool bold, [
-    TextAlign align = TextAlign.left,
-    bool last = false,
-    bool isHeader = false,
-  ]) {
-    return Expanded(
-      flex: flex,
-      child: Container(
-        // Continuous vertical grid line (not on last column).
-        decoration: BoxDecoration(
-          border: last
-              ? null
-              : Border(
-                  right: BorderSide(
-                    color:
-                        _gold.withValues(alpha: 0.18),
-                  ),
-                ),
-        ),
-        padding: EdgeInsets.symmetric(
-            horizontal: 5,
-            vertical: isHeader ? 10 : 9),
-        child: Text(
-          text,
-          textAlign: align,
-          softWrap: false,
-          overflow: TextOverflow.visible,
-          style: TextStyle(
-            color: color,
-            fontSize: isHeader ? 9 : 11,
-            fontWeight: bold
-                ? FontWeight.w700
-                : FontWeight.w500,
-            letterSpacing: 0.1,
-          ),
-        ),
       ),
     );
   }
