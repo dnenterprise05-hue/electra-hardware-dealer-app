@@ -667,7 +667,7 @@ class _CartScreenState extends State<CartScreen> {
           ),
           // Position slightly above center so the keyboard
           // does not cover the buttons.
-          child: const Align(
+          child: Align(
             alignment: Alignment(0.0, -0.25),
             child: _PinConfirmDialog(),
           ),
