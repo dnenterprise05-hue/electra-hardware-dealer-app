@@ -870,7 +870,6 @@ class _PinConfirmDialogState extends State<_PinConfirmDialog> {
           _hasError = true;
           _errorMsg = 'Incorrect PIN. Please try again.';
         });
-        _pinController.clear();
       }
     } catch (_) {
       if (!mounted) return;
@@ -1000,6 +999,7 @@ class _PinConfirmDialogState extends State<_PinConfirmDialog> {
                       style: const TextStyle(
                         color: _error,
                         fontSize: 13,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
