@@ -201,7 +201,7 @@ class ProfileScreen extends StatelessWidget {
                                           "Status",
                                           style: TextStyle(
                                             fontSize: 14,
-                                            color: _muted,
+                                            color: _ivory,
                                           ),
                                         ),
                                         const Spacer(),
@@ -215,7 +215,7 @@ class ProfileScreen extends StatelessWidget {
                                             color: dealer[
                                                         "isActive"] ==
                                                     true
-                                                ? _goldBright
+                                                ? _ivory
                                                 : const Color(
                                                     0xFFE08A8A),
                                             fontWeight:
@@ -353,7 +353,7 @@ class ProfileScreen extends StatelessWidget {
                   title,
                   style: const TextStyle(
                     fontSize: 13,
-                    color: _muted,
+                    color: _ivory,
                     letterSpacing: 0.4,
                   ),
                 ),
