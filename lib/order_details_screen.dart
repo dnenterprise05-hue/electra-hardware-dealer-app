@@ -70,7 +70,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         title: const Text("Order Details"),
         centerTitle: true,
         backgroundColor: Colors.red,
-        foregroundColor: Colors.white,
+        foregroundColor: const Color(0xFFFFF8EE),
       ),
       backgroundColor: Colors.grey.shade100,
       body: _orderStream == null

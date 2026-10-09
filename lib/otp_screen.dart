@@ -160,7 +160,7 @@ class _OtpScreenState extends State<OtpScreen> {
       appBar: AppBar(
         title: const Text("Verify OTP"),
         backgroundColor: Colors.red,
-        foregroundColor: Colors.white,
+        foregroundColor: const Color(0xFFFFF8EE),
       ),
 
       body: Padding(
@@ -206,7 +206,7 @@ class _OtpScreenState extends State<OtpScreen> {
 
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
+                  foregroundColor: const Color(0xFFFFF8EE),
                 ),
 
                 child: loading
