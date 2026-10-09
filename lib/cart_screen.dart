@@ -354,6 +354,9 @@ class _CartScreenState extends State<CartScreen> {
                                                               const TextStyle(
                                                             fontSize:
                                                                 12,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .w600,
                                                             color:
                                                                 _ivory,
                                                           ),
