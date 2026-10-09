@@ -115,26 +115,36 @@ class _ProductDetailsScreenState
   static const Color _finishColor = Color(0xFFF2F2F2);
 
   /// MRP lookup: finish + size -> MRP per PCS.
-  /// Falls back to Firestore data, then EL 231 table.
+  ///
+  /// Reads from Firestore `products/{id}.mrp` (finish-wise).
+  /// Falls back to legacy size-wise formats for backward compat.
+  /// Returns null when MRP is unavailable — caller must show
+  /// "Price not available" instead of guessing.
   double? _mrpFor(String finish, String size) {
-    // 1. Firestore size-wise MRP (if present).
+    // 1. Firestore finish-wise MRP (new schema).
+    final finishMrp = _mrpByFinish[finish];
+    if (finishMrp != null) {
+      final val = finishMrp[size];
+      if (val != null) return val;
+    }
+    // 2. Legacy size-wise MRP (backward compat).
     final fs = _mrpFs[size];
     if (fs != null) return fs;
-    // 2. EL 231 built-in table (only for EL 231).
-    if (widget.modelNo.trim().toUpperCase() ==
-        'EL 231') {
-      final byFinish =
-          _el231Mrp[finish] ?? _el231Mrp['_OTHERS'];
-      return byFinish?[size];
-    }
+    // 3. No MRP available — do NOT silently use hardcoded values.
+    // The UI must show "Price not available — contact admin".
     return null;
   }
 
   /// Size-wise MRP from Firestore (null when not available).
   final Map<String, double> _mrpFs = {};
 
+  /// Finish-wise MRP from Firestore: finish -> size -> MRP.
+  /// New schema from Admin Panel pricing management.
+  final Map<String, Map<String, double>> _mrpByFinish = {};
+
   /// Dealer discount percentage (0 when missing).
   double _discountPct = 0;
+  String _discountSource = 'none';
   bool _pricingLoaded = false;
 
   static final _inr = NumberFormat.currency(
@@ -156,12 +166,31 @@ class _ProductDetailsScreenState
     _loadPricing();
   }
 
-  /// Reads size-wise MRP from the product document and the dealer's
-  /// discount percentage. Missing data is handled gracefully.
+  /// Reads MRP from the product document.
+  /// New schema: productData['mrp'][finish][size] (finish-wise).
+  /// Legacy: productData['sizes'] list or ['mrps'] flat map (size-wise).
+  /// Missing data is handled gracefully (null = price unavailable).
   Future<void> _loadPricing() async {
-    // MRP per size from product document.
     final data = widget.productData;
     if (data != null) {
+      // New schema: finish-wise MRP from Admin Panel.
+      final mrpData = data['mrp'];
+      if (mrpData is Map) {
+        mrpData.forEach((finishKey, sizeMap) {
+          if (sizeMap is Map) {
+            final finish = finishKey.toString();
+            _mrpByFinish[finish] ??= {};
+            sizeMap.forEach((sizeKey, mrpVal) {
+              if (mrpVal is num) {
+                _mrpByFinish[finish]![
+                        sizeKey.toString()] =
+                    mrpVal.toDouble();
+              }
+            });
+          }
+        });
+      }
+      // Legacy: size-wise from 'sizes' list.
       final sizes = data['sizes'];
       if (sizes is List) {
         for (final s in sizes) {
@@ -174,7 +203,7 @@ class _ProductDetailsScreenState
           }
         }
       }
-      // Also support flat map: {"96 MM": 100, ...}
+      // Legacy: flat map {"96 MM": 100, ...}
       final mrps = data['mrps'];
       if (mrps is Map) {
         mrps.forEach((k, v) {
@@ -183,9 +212,13 @@ class _ProductDetailsScreenState
       }
     }
 
-    // Dealer discount: category-specific wins, else dealer's own.
-    _discountPct =
-        await PricingService.discountFor(widget.category);
+    // Dealer discount: finish > category > dealer fallback.
+    // Only ONE discount applied, never combined.
+    final discountResult =
+        await PricingService.discountFor(
+            widget.category, selectedFinish);
+    _discountPct = discountResult.value;
+    _discountSource = discountResult.source;
 
     if (mounted) setState(() => _pricingLoaded = true);
   }
@@ -519,11 +552,31 @@ class _ProductDetailsScreenState
                                           BorderRadius
                                               .circular(
                                                   10),
-                                      onTap: () {
+                                      onTap: () async {
                                         setState(() {
                                           selectedFinish =
                                               finish;
+                                          _pricingLoaded =
+                                              false;
                                         });
+                                        final discountResult =
+                                            await PricingService
+                                                .discountFor(
+                                                    widget
+                                                        .category,
+                                                    finish);
+                                        if (mounted) {
+                                          setState(() {
+                                            _discountPct =
+                                                discountResult
+                                                    .value;
+                                            _discountSource =
+                                                discountResult
+                                                    .source;
+                                            _pricingLoaded =
+                                                true;
+                                          });
+                                        }
                                       },
                                       child: Padding(
                                         padding:
@@ -695,6 +748,23 @@ class _ProductDetailsScreenState
                           // Pricing block (right-aligned).
                           // Row 1: MRP + OFF badge.
                           // Row 2: dealer price.
+                          // If MRP unavailable, show clear error state.
+                          if (mrp == null ||
+                              price == null)
+                            Padding(
+                              padding:
+                                  const EdgeInsets.only(
+                                      top: 4),
+                              child: Text(
+                                'Price not available — contact admin',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontStyle:
+                                      FontStyle.italic,
+                                  color: _muted,
+                                ),
+                              ),
+                            ),
                           if (mrp != null &&
                               price != null)
                             Padding(
@@ -961,6 +1031,26 @@ class _ProductDetailsScreenState
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Please select quantity."),
+        ),
+      );
+      return;
+    }
+
+    // Verify all selected sizes have pricing.
+    // Do not allow incorrectly priced orders.
+    final missingPrice = <String>[];
+    qty.forEach((size, q) {
+      if (q > 0) {
+        final price = _dealerPrice(selectedFinish, size);
+        if (price == null) missingPrice.add(size);
+      }
+    });
+    if (missingPrice.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Price not available for ${missingPrice.join(", ")} — contact admin.",
+          ),
         ),
       );
       return;

@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'models/cart_item.dart';
 import 'services/cart_service.dart';
 import 'services/dealer_service.dart';
+import 'services/pricing_service.dart';
 import 'services/pin_service.dart';
 import 'package:pinput/pinput.dart';
 
@@ -478,9 +479,17 @@ class _CartScreenState extends State<CartScreen> {
                                   ],
                                 ),
                                 const SizedBox(height: 8),
-                                // Price summary: taxable + GST 18% + total.
-                                Builder(
-                                  builder: (context) {
+                                // Price summary: taxable + GST + total.
+                                // GST rate from Firestore pricing_config.
+                                FutureBuilder<
+                                    ({
+                                      double value,
+                                      bool isFallback
+                                    })>(
+                                  future: PricingService
+                                      .gstPercent(),
+                                  builder: (context,
+                                      gstSnapshot) {
                                     double taxable = 0;
                                     bool hasPricing =
                                         false;
@@ -500,11 +509,14 @@ class _CartScreenState extends State<CartScreen> {
                                     }
                                     taxable = taxable
                                         .roundToDouble();
+                                    final gstPct =
+                                        gstSnapshot.data
+                                                ?.value ??
+                                            18;
                                     final gst =
-                                        (taxable *
-                                                18 /
-                                                100)
-                                            .roundToDouble();
+                                        PricingService.gstOn(
+                                            taxable,
+                                            gstPct);
                                     final total =
                                         taxable + gst;
                                     final fmt =
@@ -576,7 +588,7 @@ class _CartScreenState extends State<CartScreen> {
                                           row(
                                               "Taxable Amount",
                                               taxable),
-                                          row("GST 18%",
+                                          row("GST ${gstPct.toStringAsFixed(gstPct.truncateToDouble() == gstPct ? 0 : 1)}%",
                                               gst),
                                           const Divider(
                                             color: _gold,
@@ -790,7 +802,11 @@ class _CartScreenState extends State<CartScreen> {
         taxable += item.estimateTotal;
       }
       taxable = taxable.roundToDouble();
-      final gst = (taxable * 18 / 100).roundToDouble();
+      // GST from Firestore config (same rate as cart display)
+      final gstConfig =
+          await PricingService.gstPercent();
+      final gst = PricingService.gstOn(
+          taxable, gstConfig.value);
       final totalEstimate = taxable + gst;
 
       await orderRef.set({
