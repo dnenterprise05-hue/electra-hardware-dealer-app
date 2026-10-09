@@ -211,7 +211,7 @@ class _CartScreenState extends State<CartScreen> {
                                                       fontSize:
                                                           14,
                                                       color:
-                                                          _ivorySoft,
+                                                          _ivory,
                                                     ),
                                                   ),
                                                 ],
@@ -244,59 +244,139 @@ class _CartScreenState extends State<CartScreen> {
                                                 e.value >
                                                 0)
                                             .map(
-                                              (e) => Padding(
-                                                padding:
-                                                    const EdgeInsets
-                                                        .only(
-                                                        bottom:
-                                                            6),
-                                                child: Row(
-                                                  children: [
-                                                    SizedBox(
-                                                      width:
-                                                          80,
-                                                      child:
-                                                          Text(
-                                                        e.key,
-                                                        style:
-                                                            const TextStyle(
-                                                          fontSize:
-                                                              14,
-                                                          fontWeight:
-                                                              FontWeight
-                                                                  .w500,
+                                              (e) {
+                                                final price =
+                                                    item.prices[
+                                                        e.key];
+                                                final lineTotal =
+                                                    price !=
+                                                            null
+                                                        ? (price *
+                                                                e.value)
+                                                            .roundToDouble()
+                                                        : null;
+                                                final fmt =
+                                                    NumberFormat.currency(
+                                                  locale:
+                                                      'en_IN',
+                                                  symbol:
+                                                      '₹',
+                                                  decimalDigits:
+                                                      0,
+                                                );
+                                                return Padding(
+                                                  padding:
+                                                      const EdgeInsets
+                                                          .only(
+                                                              bottom:
+                                                                  6),
+                                                  child:
+                                                      FittedBox(
+                                                    fit: BoxFit
+                                                        .scaleDown,
+                                                    alignment:
+                                                        Alignment
+                                                            .centerLeft,
+                                                    child:
+                                                        Row(
+                                                      children: [
+                                                        Text(
+                                                          e.key,
+                                                          style:
+                                                              const TextStyle(
+                                                            fontSize:
+                                                                13,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .w500,
+                                                            color:
+                                                                _ivory,
+                                                          ),
+                                                        ),
+                                                        const SizedBox(
+                                                            width:
+                                                                6),
+                                                        const Icon(
+                                                          Icons
+                                                              .arrow_forward,
+                                                          size:
+                                                              12,
                                                           color:
                                                               _ivory,
                                                         ),
-                                                      ),
+                                                        const SizedBox(
+                                                            width:
+                                                                6),
+                                                        Text(
+                                                          "${e.value} PCS",
+                                                          style:
+                                                              const TextStyle(
+                                                            fontSize:
+                                                                13,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .w600,
+                                                            color:
+                                                                _ivory,
+                                                          ),
+                                                        ),
+                                                        if (price !=
+                                                                null &&
+                                                            lineTotal !=
+                                                                null) ...[
+                                                          const Text(
+                                                            " × ",
+                                                            style:
+                                                                TextStyle(
+                                                              fontSize:
+                                                                  13,
+                                                              color:
+                                                                  _ivory,
+                                                            ),
+                                                          ),
+                                                          Text(
+                                                            "${fmt.format(price)}/PCS",
+                                                            style:
+                                                                const TextStyle(
+                                                              fontSize:
+                                                                  13,
+                                                              color:
+                                                                  _ivory,
+                                                            ),
+                                                          ),
+                                                          const Text(
+                                                            " = ",
+                                                            style:
+                                                                TextStyle(
+                                                              fontSize:
+                                                                  13,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w700,
+                                                              color:
+                                                                  _ivory,
+                                                            ),
+                                                          ),
+                                                          Text(
+                                                            fmt.format(
+                                                                lineTotal),
+                                                            style:
+                                                                const TextStyle(
+                                                              fontSize:
+                                                                  13,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w700,
+                                                              color:
+                                                                  _ivory,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ],
                                                     ),
-                                                    const Icon(
-                                                      Icons
-                                                          .arrow_forward,
-                                                      size:
-                                                          14,
-                                                      color:
-                                                          _muted,
-                                                    ),
-                                                    const SizedBox(
-                                                        width:
-                                                            10),
-                                                    Text(
-                                                      "${e.value} PCS",
-                                                      style:
-                                                          const TextStyle(
-                                                        fontSize:
-                                                            14,
-                                                        fontWeight:
-                                                            FontWeight
-                                                                .w600,
-                                                        color:
-                                                            _goldBright,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
+                                                  ),
+                                                );
+                                              },
                                             ),
                                       ],
                                     ),
@@ -415,12 +495,11 @@ class _CartScreenState extends State<CartScreen> {
                                             Text(
                                               label,
                                               style:
-                                                  TextStyle(
+                                                  const TextStyle(
                                                 fontSize:
                                                     14,
-                                                color: bold
-                                                    ? _ivory
-                                                    : _muted,
+                                                color:
+                                                    _ivory,
                                                 fontWeight: bold
                                                     ? FontWeight
                                                         .w700
@@ -440,7 +519,7 @@ class _CartScreenState extends State<CartScreen> {
                                                     FontWeight
                                                         .w700,
                                                 color:
-                                                    _goldBright,
+                                                    _ivory,
                                               ),
                                             ),
                                           ],
