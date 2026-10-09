@@ -3,22 +3,14 @@ import 'dealer_service.dart';
 
 /// Central pricing configuration.
 ///
-/// Reads from Firestore `pricing_config/global`:
-/// - `gstPercent`: GST rate (fallback: 18)
-/// - `categoryDiscounts`: {categoryName: discountPct}
-/// - `finishDiscounts`: {finishName: discountPct}
+/// Simplified dealer-wise category discount pricing:
+/// - Each dealer has `categoryDiscounts` map in their Firestore doc
+/// - Discount precedence: dealer category > dealer legacy > none
+/// - Only ONE discount applied, never combined
 ///
-/// Discount precedence (only ONE applied):
-/// 1. Finish-specific discount (highest priority)
-/// 2. Category discount
-/// 3. Dealer's discountPercentage (fallback)
+/// GST read from Firestore `pricing_config/global`:
+/// - `gstPercent`: GST rate (fallback: 18, clearly identified)
 class PricingService {
-  /// Legacy hardcoded fallback — used ONLY when Firestore config
-  /// is unavailable. Clearly identified as fallback.
-  static const Map<String, double> _fallbackCategoryDiscounts = {
-    'Zinc Cabinet Handles': 66,
-  };
-
   /// Fallback GST when Firestore config unavailable.
   static const double _fallbackGstPercent = 18;
 
@@ -59,53 +51,48 @@ class PricingService {
     return (value: _fallbackGstPercent, isFallback: true);
   }
 
-  /// Resolves the effective discount for a category and finish.
+  /// Resolves the effective discount for a category.
   ///
-  /// Precedence: finish > category > dealer discountPercentage.
-  /// Returns (discountPct, source) where source identifies which
-  /// level provided the discount: 'finish', 'category', 'dealer', or 'none'.
+  /// Precedence (only ONE applied, never combined):
+  /// 1. Dealer's categoryDiscounts[category] (per-dealer, per-category)
+  /// 2. Dealer's legacy discountPercentage (backward compat)
+  /// 3. No discount (0%)
+  ///
+  /// Returns (discountPct, source) where source is:
+  /// 'dealer-category', 'dealer-legacy', or 'none'.
   static Future<({double value, String source})>
       discountFor(String? category, String? finish) async {
-    await loadConfig();
+    // Note: finish parameter kept for API compat, not used in
+    // simplified pricing (dealer category discounts only).
 
-    // 1. Finish-specific discount (highest priority)
-    if (finish != null && finish.isNotEmpty) {
-      final finishDiscounts = _configCache?['finishDiscounts']
-          as Map<String, dynamic>?;
-      final raw = finishDiscounts?[finish];
-      if (raw is num && raw >= 0 && raw <= 100) {
-        return (value: raw.toDouble(), source: 'finish');
-      }
-    }
-
-    // 2. Category discount
+    // 1. Dealer's per-category discount (highest priority)
     if (category != null && category.isNotEmpty) {
-      // Firestore config first
-      final categoryDiscounts =
-          _configCache?['categoryDiscounts']
-              as Map<String, dynamic>?;
-      final raw = categoryDiscounts?[category];
-      if (raw is num && raw >= 0 && raw <= 100) {
-        return (value: raw.toDouble(), source: 'category');
-      }
-      // Legacy hardcoded fallback
-      final fallback =
-          _fallbackCategoryDiscounts[category];
-      if (fallback != null) {
-        return (value: fallback, source: 'category-fallback');
-      }
+      try {
+        final doc = await DealerService.getDealerDoc();
+        final data = doc?.data();
+        final categoryDiscounts =
+            data?['categoryDiscounts'] as Map<String, dynamic>?;
+        final raw = categoryDiscounts?[category];
+        if (raw is num && raw >= 0 && raw <= 100) {
+          return (
+            value: raw.toDouble(),
+            source: 'dealer-category'
+          );
+        }
+      } catch (_) {}
     }
 
-    // 3. Dealer discountPercentage fallback
+    // 2. Legacy dealer discountPercentage fallback
     try {
       final doc = await DealerService.getDealerDoc();
       final raw = doc?.data()?['discountPercentage'];
       if (raw is num) {
         final val = raw.toDouble().clamp(0, 100).toDouble();
-        return (value: val, source: 'dealer');
+        return (value: val, source: 'dealer-legacy');
       }
     } catch (_) {}
 
+    // 3. No discount configured
     return (value: 0.0, source: 'none');
   }
 
