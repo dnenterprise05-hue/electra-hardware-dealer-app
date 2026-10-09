@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'models/cart_item.dart';
 import 'services/cart_service.dart';
 import 'services/dealer_service.dart';
+import 'services/pin_service.dart';
 
 /// Cart — luxury showroom theme.
 ///
@@ -341,9 +342,9 @@ class _CartScreenState extends State<CartScreen> {
                                                           ),
                                                         ),
                                                       ),
-                                                      // RATE (fixed 52, left).
+                                                      // RATE (fixed 42, left).
                                                       SizedBox(
-                                                        width: 52,
+                                                        width: 42,
                                                         child: Text(
                                                           price !=
                                                                   null
@@ -365,9 +366,9 @@ class _CartScreenState extends State<CartScreen> {
                                                           ),
                                                         ),
                                                       ),
-                                                      // = (fixed 14).
+                                                      // = (fixed 18).
                                                       const SizedBox(
-                                                        width: 14,
+                                                        width: 18,
                                                         child: Text(
                                                           "=",
                                                           textAlign:
@@ -597,8 +598,8 @@ class _CartScreenState extends State<CartScreen> {
                                   height: 52,
                                   child:
                                       ElevatedButton.icon(
-                                    onPressed: () async =>
-                                        _submitOrder(
+                                    onPressed: () =>
+                                        _confirmPinAndSubmit(
                                             context),
                                     style: ElevatedButton
                                         .styleFrom(
@@ -644,9 +645,30 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
+  bool _submitting = false;
+
+  /// Shows PIN confirmation before submitting the order.
+  Future<void> _confirmPinAndSubmit(BuildContext context) async {
+    if (_submitting) return;
+    if (CartService.cartItems.isEmpty) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) => _PinConfirmDialog(),
+    );
+
+    if (confirmed == true && context.mounted) {
+      _submitOrder(context);
+    }
+  }
+
   /// Order submission — logic unchanged from the previous implementation.
   Future<void> _submitOrder(BuildContext context) async {
-    final items = CartService.cartItems;
+    if (_submitting) return;
+    _submitting = true;
+    try {
+      final items = CartService.cartItems;
 
     // ---- 1. Dealer safety: fail fast before touching the counter.
     // Uses the dealer identity/session from the OTP login gate.
@@ -777,6 +799,255 @@ class _CartScreenState extends State<CartScreen> {
       return;
     }
 
-    if (context.mounted) setState(() {});
+      if (context.mounted) setState(() {});
+    } finally {
+      _submitting = false;
+    }
+  }
+}
+
+/// PIN confirmation dialog shown before submitting an order.
+/// Uses [PinService.verifyPin] for secure verification.
+class _PinConfirmDialog extends StatefulWidget {
+  @override
+  State<_PinConfirmDialog> createState() => _PinConfirmDialogState();
+}
+
+class _PinConfirmDialogState extends State<_PinConfirmDialog> {
+  static const _ivory = Color(0xFFFFF8EE);
+  static const _gold = Color(0xFFD8B36A);
+  static const _muted = Color(0xFFB9AC93);
+  static const _error = Color(0xFFE57373);
+
+  final List<TextEditingController> _controllers =
+      List.generate(4, (_) => TextEditingController());
+  final List<FocusNode> _focusNodes =
+      List.generate(4, (_) => FocusNode());
+
+  bool _verifying = false;
+  bool _failedAttempts = false;
+  String _errorMsg = '';
+
+  @override
+  void dispose() {
+    for (final c in _controllers) c.dispose();
+    for (final f in _focusNodes) f.dispose();
+    super.dispose();
+  }
+
+  String get _pin => _controllers.map((c) => c.text).join();
+
+  void _onChanged(int index, String value) {
+    setState(() {
+      _errorMsg = '';
+      _failedAttempts = false;
+    });
+    if (value.isNotEmpty && index < 3) {
+      _focusNodes[index + 1].requestFocus();
+    } else if (value.isEmpty && index > 0) {
+      _focusNodes[index - 1].requestFocus();
+    }
+    // Auto-verify when all 4 digits entered.
+    if (_pin.length == 4 && !_pin.contains('')) {
+      _verify();
+    }
+  }
+
+  Future<void> _verify() async {
+    if (_verifying) return;
+    final pin = _pin;
+    if (pin.length != 4) return;
+
+    setState(() {
+      _verifying = true;
+      _errorMsg = '';
+    });
+
+    try {
+      final valid = await PinService.verifyPin(pin);
+      if (!mounted) return;
+      if (valid) {
+        Navigator.of(context).pop(true);
+      } else {
+        setState(() {
+          _verifying = false;
+          _failedAttempts = true;
+          _errorMsg = 'Incorrect PIN. Please try again.';
+        });
+        for (final c in _controllers) c.clear();
+        _focusNodes[0].requestFocus();
+      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _verifying = false;
+        _errorMsg = 'Verification failed. Please try again.';
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(28, 28, 28, 24),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.72),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: _gold.withValues(alpha: 0.45),
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.lock_outline,
+                  color: _gold,
+                  size: 36,
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Confirm Order',
+                  style: TextStyle(
+                    color: _ivory,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Enter your 4-digit login PIN to confirm.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: _muted,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(4, (i) {
+                    return Container(
+                      width: 52,
+                      height: 60,
+                      margin: EdgeInsets.only(
+                        right: i < 3 ? 10 : 0,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: _failedAttempts
+                              ? _error.withValues(alpha: 0.7)
+                              : _gold.withValues(alpha: 0.35),
+                        ),
+                      ),
+                      child: TextField(
+                        controller: _controllers[i],
+                        focusNode: _focusNodes[i],
+                        textAlign: TextAlign.center,
+                        keyboardType: TextInputType.number,
+                        maxLength: 1,
+                        obscureText: true,
+                        obscuringCharacter: '•',
+                        style: const TextStyle(
+                          color: _ivory,
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        decoration: const InputDecoration(
+                          counterText: '',
+                          border: InputBorder.none,
+                        ),
+                        onChanged: (v) => _onChanged(i, v),
+                      ),
+                    );
+                  }),
+                ),
+                if (_errorMsg.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    _errorMsg,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: _error,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: _verifying
+                            ? null
+                            : () =>
+                                Navigator.of(context)
+                                    .pop(false),
+                        child: const Text(
+                          'CANCEL',
+                          style: TextStyle(
+                            color: _muted,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 1.0,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed:
+                            _verifying ? null : _verify,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _gold,
+                          foregroundColor: Colors.black,
+                          padding:
+                              const EdgeInsets.symmetric(
+                                  vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: _verifying
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child:
+                                    CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.black,
+                                ),
+                              )
+                            : const Text(
+                                'CONFIRM',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight:
+                                      FontWeight.w700,
+                                  letterSpacing: 1.0,
+                                ),
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
