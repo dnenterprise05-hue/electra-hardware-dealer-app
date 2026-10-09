@@ -8,6 +8,7 @@ import 'models/cart_item.dart';
 import 'services/cart_service.dart';
 import 'services/dealer_service.dart';
 import 'services/pin_service.dart';
+import 'package:pinput/pinput.dart';
 
 /// Cart — luxury showroom theme.
 ///
@@ -819,48 +820,27 @@ class _PinConfirmDialogState extends State<_PinConfirmDialog> {
   static const _muted = Color(0xFFB9AC93);
   static const _error = Color(0xFFE57373);
 
-  final List<TextEditingController> _controllers =
-      List.generate(4, (_) => TextEditingController());
-  final List<FocusNode> _focusNodes =
-      List.generate(4, (_) => FocusNode());
+  final TextEditingController _pinController = TextEditingController();
 
   bool _verifying = false;
-  bool _failedAttempts = false;
+  bool _hasError = false;
   String _errorMsg = '';
 
   @override
   void dispose() {
-    for (final c in _controllers) c.dispose();
-    for (final f in _focusNodes) f.dispose();
+    _pinController.dispose();
     super.dispose();
-  }
-
-  String get _pin => _controllers.map((c) => c.text).join();
-
-  void _onChanged(int index, String value) {
-    setState(() {
-      _errorMsg = '';
-      _failedAttempts = false;
-    });
-    if (value.isNotEmpty && index < 3) {
-      _focusNodes[index + 1].requestFocus();
-    } else if (value.isEmpty && index > 0) {
-      _focusNodes[index - 1].requestFocus();
-    }
-    // Auto-verify when all 4 digits entered.
-    if (_pin.length == 4 && !_pin.contains('')) {
-      _verify();
-    }
   }
 
   Future<void> _verify() async {
     if (_verifying) return;
-    final pin = _pin;
+    final pin = _pinController.text;
     if (pin.length != 4) return;
 
     setState(() {
       _verifying = true;
       _errorMsg = '';
+      _hasError = false;
     });
 
     try {
@@ -871,11 +851,10 @@ class _PinConfirmDialogState extends State<_PinConfirmDialog> {
       } else {
         setState(() {
           _verifying = false;
-          _failedAttempts = true;
+          _hasError = true;
           _errorMsg = 'Incorrect PIN. Please try again.';
         });
-        for (final c in _controllers) c.clear();
-        _focusNodes[0].requestFocus();
+        _pinController.clear();
       }
     } catch (_) {
       if (!mounted) return;
@@ -888,162 +867,188 @@ class _PinConfirmDialogState extends State<_PinConfirmDialog> {
 
   @override
   Widget build(BuildContext context) {
+    // PIN box themes — exact same as the Dealer Login PIN screen.
+    final defaultPinTheme = PinTheme(
+      width: 46,
+      height: 46,
+      textStyle: const TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.w700,
+        color: Color(0xFFFFF8EE),
+      ),
+      decoration: BoxDecoration(
+        color: const Color(0xFF171513).withValues(alpha: 0.72),
+        border: Border.all(
+          color: const Color(0xFFD8B36A).withValues(alpha: 0.35),
+        ),
+        borderRadius: BorderRadius.circular(12),
+      ),
+    );
+
+    final focusedPinTheme = defaultPinTheme.copyWith(
+      decoration: defaultPinTheme.decoration!.copyWith(
+        border: Border.all(
+          color: const Color(0xFFD8B36A),
+          width: 1.5,
+        ),
+      ),
+    );
+
+    final submittedPinTheme = defaultPinTheme.copyWith(
+      decoration: defaultPinTheme.decoration!.copyWith(
+        border: Border.all(
+          color: const Color(0xFFD8B36A).withValues(alpha: 0.55),
+        ),
+      ),
+    );
+
+    final errorPinTheme = defaultPinTheme.copyWith(
+      decoration: defaultPinTheme.decoration!.copyWith(
+        border: Border.all(
+          color: _error.withValues(alpha: 0.7),
+        ),
+      ),
+    );
+
     return Dialog(
       backgroundColor: Colors.transparent,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(28, 28, 28, 24),
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.25),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: _gold.withValues(alpha: 0.45),
-              ),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.lock_outline,
-                  color: _gold,
-                  size: 36,
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Confirm Order',
-                  style: TextStyle(
-                    color: _ivory,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.5,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: _gold.withValues(alpha: 0.35),
+          ),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(14),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 2.5, sigmaY: 2.5),
+            child: Container(
+              color: Colors.black.withValues(alpha: 0.10),
+              padding:
+                  const EdgeInsets.fromLTRB(28, 28, 28, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.lock_outline,
+                    color: _gold,
+                    size: 36,
                   ),
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  'Enter your 4-digit login PIN to confirm.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: _ivory,
-                    fontSize: 13,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(4, (i) {
-                    return Container(
-                      width: 52,
-                      height: 60,
-                      margin: EdgeInsets.only(
-                        right: i < 3 ? 10 : 0,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.4),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: _failedAttempts
-                              ? _error.withValues(alpha: 0.7)
-                              : _gold.withValues(alpha: 0.35),
-                        ),
-                      ),
-                      child: TextField(
-                        controller: _controllers[i],
-                        focusNode: _focusNodes[i],
-                        textAlign: TextAlign.center,
-                        keyboardType: TextInputType.number,
-                        maxLength: 1,
-                        obscureText: true,
-                        obscuringCharacter: '•',
-                        style: const TextStyle(
-                          color: _ivory,
-                          fontSize: 24,
-                          fontWeight: FontWeight.w700,
-                        ),
-                        decoration: const InputDecoration(
-                          counterText: '',
-                          border: InputBorder.none,
-                        ),
-                        onChanged: (v) => _onChanged(i, v),
-                      ),
-                    );
-                  }),
-                ),
-                if (_errorMsg.isNotEmpty) ...[
                   const SizedBox(height: 12),
-                  Text(
-                    _errorMsg,
+                  const Text(
+                    'Confirm Order',
+                    style: TextStyle(
+                      color: _ivory,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Enter your 4-digit login PIN to confirm.',
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: _error,
+                    style: TextStyle(
+                      color: _ivory,
                       fontSize: 13,
                     ),
                   ),
-                ],
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextButton(
-                        onPressed: _verifying
-                            ? null
-                            : () =>
-                                Navigator.of(context)
-                                    .pop(false),
-                        child: const Text(
-                          'CANCEL',
-                          style: TextStyle(
-                            color: _muted,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 1.0,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed:
-                            _verifying ? null : _verify,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _gold,
-                          foregroundColor: Colors.black,
-                          padding:
-                              const EdgeInsets.symmetric(
-                                  vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(12),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: _verifying
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child:
-                                    CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.black,
-                                ),
-                              )
-                            : const Text(
-                                'CONFIRM',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight:
-                                      FontWeight.w700,
-                                  letterSpacing: 1.0,
-                                ),
-                              ),
+                  const SizedBox(height: 20),
+                  Pinput(
+                    length: 4,
+                    controller: _pinController,
+                    keyboardType: TextInputType.number,
+                    obscureText: true,
+                    closeKeyboardWhenCompleted: false,
+                    defaultPinTheme: defaultPinTheme,
+                    focusedPinTheme: focusedPinTheme,
+                    submittedPinTheme: submittedPinTheme,
+                    errorPinTheme:
+                        _hasError ? errorPinTheme : null,
+                    onChanged: (_) {
+                      if (_hasError || _errorMsg.isNotEmpty) {
+                        setState(() {
+                          _hasError = false;
+                          _errorMsg = '';
+                        });
+                      }
+                    },
+                    onCompleted: (_) => _verify(),
+                  ),
+                  if (_errorMsg.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      _errorMsg,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: _error,
+                        fontSize: 13,
                       ),
                     ),
                   ],
-                ),
-              ],
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: _verifying
+                              ? null
+                              : () => Navigator.of(context)
+                                  .pop(false),
+                          child: const Text(
+                            'CANCEL',
+                            style: TextStyle(
+                              color: _muted,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 1.0,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed:
+                              _verifying ? null : _verify,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _gold,
+                            foregroundColor: Colors.black,
+                            padding:
+                                const EdgeInsets.symmetric(
+                                    vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.circular(12),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: _verifying
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child:
+                                      CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.black,
+                                  ),
+                                )
+                              : const Text(
+                                  'CONFIRM',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight:
+                                        FontWeight.w700,
+                                    letterSpacing: 1.0,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
