@@ -293,9 +293,9 @@ class _CartScreenState extends State<CartScreen> {
                                                           ),
                                                         ),
                                                       ),
-                                                      // Arrow (fixed 18).
+                                                      // Arrow (fixed 20).
                                                       const SizedBox(
-                                                        width: 18,
+                                                        width: 20,
                                                         child: Icon(
                                                           Icons
                                                               .arrow_forward,
@@ -305,9 +305,9 @@ class _CartScreenState extends State<CartScreen> {
                                                               _ivory,
                                                         ),
                                                       ),
-                                                      // QUANTITY (fixed 58, right).
+                                                      // QUANTITY (fixed 60, right).
                                                       SizedBox(
-                                                        width: 58,
+                                                        width: 60,
                                                         child: Text(
                                                           "${e.value} PCS",
                                                           textAlign:
@@ -325,9 +325,9 @@ class _CartScreenState extends State<CartScreen> {
                                                           ),
                                                         ),
                                                       ),
-                                                      // x (fixed 14).
+                                                      // x (fixed 20).
                                                       const SizedBox(
-                                                        width: 14,
+                                                        width: 20,
                                                         child: Text(
                                                           "\u00d7",
                                                           textAlign:
@@ -342,9 +342,9 @@ class _CartScreenState extends State<CartScreen> {
                                                           ),
                                                         ),
                                                       ),
-                                                      // RATE (fixed 42, left).
+                                                      // RATE (fixed 44, left).
                                                       SizedBox(
-                                                        width: 42,
+                                                        width: 44,
                                                         child: Text(
                                                           price !=
                                                                   null
@@ -366,9 +366,9 @@ class _CartScreenState extends State<CartScreen> {
                                                           ),
                                                         ),
                                                       ),
-                                                      // = (fixed 18).
+                                                      // = (fixed 20).
                                                       const SizedBox(
-                                                        width: 18,
+                                                        width: 20,
                                                         child: Text(
                                                           "=",
                                                           textAlign:
@@ -897,7 +897,7 @@ class _PinConfirmDialogState extends State<_PinConfirmDialog> {
           child: Container(
             padding: const EdgeInsets.fromLTRB(28, 28, 28, 24),
             decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.72),
+              color: Colors.black.withValues(alpha: 0.25),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: _gold.withValues(alpha: 0.45),
@@ -926,7 +926,7 @@ class _PinConfirmDialogState extends State<_PinConfirmDialog> {
                   'Enter your 4-digit login PIN to confirm.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: _muted,
+                    color: _ivory,
                     fontSize: 13,
                   ),
                 ),
