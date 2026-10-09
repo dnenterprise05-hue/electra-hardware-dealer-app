@@ -101,12 +101,12 @@ class PricingService {
       final doc = await DealerService.getDealerDoc();
       final raw = doc?.data()?['discountPercentage'];
       if (raw is num) {
-        final val = raw.toDouble().clamp(0, 100);
+        final val = raw.toDouble().clamp(0, 100).toDouble();
         return (value: val, source: 'dealer');
       }
     } catch (_) {}
 
-    return (value: 0, source: 'none');
+    return (value: 0.0, source: 'none');
   }
 
   /// Legacy: resolves discount for category only (no finish).
