@@ -272,11 +272,14 @@ class _CartScreenState extends State<CartScreen> {
                                                                   6),
                                                   child: Row(
                                                     children: [
-                                                      // SIZE (fixed 56).
+                                                      // SIZE (fixed 56, right).
                                                       SizedBox(
                                                         width: 56,
                                                         child: Text(
                                                           e.key,
+                                                          textAlign:
+                                                              TextAlign
+                                                                  .right,
                                                           style:
                                                               const TextStyle(
                                                             fontSize:
