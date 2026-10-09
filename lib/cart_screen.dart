@@ -495,7 +495,7 @@ class _CartScreenState extends State<CartScreen> {
                                             Text(
                                               label,
                                               style:
-                                                  const TextStyle(
+                                                  TextStyle(
                                                 fontSize:
                                                     14,
                                                 color:
