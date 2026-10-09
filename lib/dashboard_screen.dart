@@ -143,7 +143,7 @@ class DashboardScreen extends StatelessWidget {
                                   location.isEmpty ? "—" : location,
                                   style: const TextStyle(
                                     fontSize: 13,
-                                    color: _ivorySoft,
+                                    color: _ivory,
                                   ),
                                 ),
                               ),
@@ -162,7 +162,7 @@ class DashboardScreen extends StatelessWidget {
                                 "GSTIN : $gst",
                                 style: const TextStyle(
                                   fontSize: 12.5,
-                                  color: _ivorySoft,
+                                  color: _ivory,
                                   letterSpacing: 0.4,
                                 ),
                               ),
