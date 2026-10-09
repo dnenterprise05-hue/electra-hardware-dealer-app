@@ -203,7 +203,7 @@ class _LedgerBodyState extends State<_LedgerBody> {
                         sigmaX: 8, sigmaY: 8),
                     child: Container(
                       color: Colors.black.withValues(
-                          alpha: 0.78),
+                          alpha: 0.18),
                       child: Column(
                         mainAxisSize:
                             MainAxisSize.min,
@@ -567,7 +567,7 @@ class _LedgerBodyState extends State<_LedgerBody> {
                                     child: Text(
                                       'No transactions yet',
                                       style: TextStyle(
-                                          color: _muted,
+                                          color: _ivory,
                                           fontSize: 14),
                                     ),
                                   )
@@ -832,7 +832,7 @@ class _LedgerBodyState extends State<_LedgerBody> {
         softWrap: false,
         overflow: TextOverflow.visible,
         style: const TextStyle(
-          color: _muted,
+          color: _ivory,
           fontSize: 9,
           fontWeight: FontWeight.w700,
           letterSpacing: 0.3,
@@ -986,7 +986,7 @@ class _LedgerBodyState extends State<_LedgerBody> {
               'TOTAL',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: _muted,
+                color: _ivory,
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 0.1,
@@ -997,7 +997,7 @@ class _LedgerBodyState extends State<_LedgerBody> {
           _bcell(
             LedgerScreen._inr.format(totalSales),
             _fAmt,
-            _muted,
+            _ivory,
             TextAlign.center,
             true,
           ),
@@ -1005,7 +1005,7 @@ class _LedgerBodyState extends State<_LedgerBody> {
           _bcell(
             LedgerScreen._inr.format(totalPayment),
             _fAmt,
-            _muted,
+            _ivory,
             TextAlign.center,
             true,
           ),
@@ -1013,7 +1013,7 @@ class _LedgerBodyState extends State<_LedgerBody> {
           _bcell(
             LedgerScreen._inr.format(outstanding),
             _fBal,
-            _muted,
+            _ivory,
             TextAlign.center,
             true,
           ),
