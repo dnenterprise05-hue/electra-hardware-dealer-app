@@ -34,6 +34,7 @@ class _CartScreenState extends State<CartScreen> {
 
     return Scaffold(
       backgroundColor: Colors.black,
+      resizeToAvoidBottomInset: false,
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -926,16 +927,16 @@ class _PinConfirmDialogState extends State<_PinConfirmDialog> {
             child: Container(
               color: Colors.black.withValues(alpha: 0.10),
               padding:
-                  const EdgeInsets.fromLTRB(28, 28, 28, 24),
+                  const EdgeInsets.fromLTRB(24, 22, 24, 20),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Icon(
                     Icons.lock_outline,
                     color: _gold,
-                    size: 36,
+                    size: 30,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 10),
                   const Text(
                     'Confirm Order',
                     style: TextStyle(
@@ -945,7 +946,7 @@ class _PinConfirmDialogState extends State<_PinConfirmDialog> {
                       letterSpacing: 0.5,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 5),
                   const Text(
                     'Enter your 4-digit login PIN to confirm.',
                     textAlign: TextAlign.center,
@@ -954,7 +955,7 @@ class _PinConfirmDialogState extends State<_PinConfirmDialog> {
                       fontSize: 13,
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
                   Pinput(
                     length: 4,
                     controller: _pinController,
@@ -987,7 +988,7 @@ class _PinConfirmDialogState extends State<_PinConfirmDialog> {
                       ),
                     ),
                   ],
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
                   Row(
                     children: [
                       Expanded(
