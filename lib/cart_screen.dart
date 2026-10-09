@@ -657,7 +657,22 @@ class _CartScreenState extends State<CartScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       barrierDismissible: true,
-      builder: (dialogContext) => _PinConfirmDialog(),
+      builder: (dialogContext) {
+        // Lock dialog position: ignore keyboard insets so the card
+        // does not shift when the keyboard opens.
+        final mq = MediaQuery.of(dialogContext);
+        return MediaQuery(
+          data: mq.copyWith(
+            viewInsets: EdgeInsets.zero,
+          ),
+          // Position slightly above center so the keyboard
+          // does not cover the buttons.
+          child: const Align(
+            alignment: Alignment(0.0, -0.25),
+            child: _PinConfirmDialog(),
+          ),
+        );
+      },
     );
 
     if (confirmed == true && context.mounted) {
