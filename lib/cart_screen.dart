@@ -338,9 +338,9 @@ class _CartScreenState extends State<CartScreen> {
                                                           ),
                                                         ),
                                                       ),
-                                                      // RATE (fixed 46, right).
+                                                      // RATE (fixed 52, left).
                                                       SizedBox(
-                                                        width: 46,
+                                                        width: 52,
                                                         child: Text(
                                                           price !=
                                                                   null
@@ -349,7 +349,7 @@ class _CartScreenState extends State<CartScreen> {
                                                               : "",
                                                           textAlign:
                                                               TextAlign
-                                                                  .right,
+                                                                  .left,
                                                           style:
                                                               const TextStyle(
                                                             fontSize:
