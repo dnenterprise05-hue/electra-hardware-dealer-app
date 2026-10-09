@@ -498,7 +498,7 @@ sigmaY: 0,
                                     child: Text(
                                       'Dealer Code',
                                       style: TextStyle(
-                                        color: Color(0xFFB9AC93),
+                                        color: Color(0xFFFFF8EE),
                                         fontSize: 13,
                                         fontWeight: FontWeight.w600,
                                         letterSpacing: 0.3,

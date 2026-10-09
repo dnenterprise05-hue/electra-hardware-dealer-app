@@ -405,13 +405,13 @@ class _PinScreenState extends State<PinScreen> {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    if (!_isCreate && _ownerCode.isNotEmpty) ...[
+                    if (!_isCreate) ...[
                       const SizedBox(height: 4),
-                      Text(
-                        _ownerCode,
+                      const Text(
+                        'D N ENTERPRISE',
                         style: TextStyle(
                           fontSize: 14,
-                          color: const Color(0xFFB9AC93),
+                          color: Color(0xFFFFF8EE),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -425,7 +425,7 @@ class _PinScreenState extends State<PinScreen> {
                       style: TextStyle(
                         fontSize: 14,
                         color:
-                            const Color(0xFFB9AC93),
+                            const Color(0xFFFFF8EE),
                       ),
                     ),
                     const SizedBox(height: 28),
