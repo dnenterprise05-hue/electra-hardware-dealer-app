@@ -151,6 +151,12 @@ class ProfileScreen extends StatelessWidget {
                                   ),
                                   _divider(),
                                   _profileTile(
+                                    Icons.location_on_outlined,
+                                    "City",
+                                    dealer["city"] ?? "",
+                                  ),
+                                  _divider(),
+                                  _profileTile(
                                     Icons.badge_outlined,
                                     "Dealer Code",
                                     dealer["dealerCode"] ??
