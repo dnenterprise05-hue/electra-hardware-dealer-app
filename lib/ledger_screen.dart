@@ -525,7 +525,7 @@ class _LedgerBodyState extends State<_LedgerBody> {
                               const Text(
                                 'O/S AMOUNT',
                                 style: TextStyle(
-                                  color: _muted,
+                                  color: _ivory,
                                   fontSize: 12,
                                   fontWeight:
                                       FontWeight.w600,
@@ -537,7 +537,7 @@ class _LedgerBodyState extends State<_LedgerBody> {
                                 LedgerScreen._inr.format(
                                     outstanding),
                                 style: const TextStyle(
-                                  color: _goldBright,
+                                  color: _ivory,
                                   fontSize: 30,
                                   fontWeight:
                                       FontWeight.w700,
@@ -671,7 +671,7 @@ class _LedgerBodyState extends State<_LedgerBody> {
                         Text(
                           'FY $_selectedFy',
                           style: const TextStyle(
-                            color: _goldBright,
+                            color: _ivory,
                             fontSize: 11,
                             fontWeight:
                                 FontWeight.w600,
@@ -762,7 +762,7 @@ class _LedgerBodyState extends State<_LedgerBody> {
           child: Text(
             label,
             style: const TextStyle(
-              color: _muted,
+              color: _ivory,
               fontSize: 12,
               fontWeight: FontWeight.w600,
               letterSpacing: 1.2,

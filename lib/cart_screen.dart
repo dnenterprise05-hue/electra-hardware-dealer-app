@@ -205,7 +205,7 @@ class _CartScreenState extends State<CartScreen> {
                                                       height:
                                                           6),
                                                   Text(
-                                                    "Finish : ${item.finish}",
+                                                    "Colour : ${item.finish}",
                                                     style:
                                                         const TextStyle(
                                                       fontSize:
@@ -270,22 +270,17 @@ class _CartScreenState extends State<CartScreen> {
                                                           .only(
                                                               bottom:
                                                                   6),
-                                                  child:
-                                                      FittedBox(
-                                                    fit: BoxFit
-                                                        .scaleDown,
-                                                    alignment:
-                                                        Alignment
-                                                            .centerLeft,
-                                                    child:
-                                                        Row(
-                                                      children: [
-                                                        Text(
+                                                  child: Row(
+                                                    children: [
+                                                      // SIZE (fixed 56).
+                                                      SizedBox(
+                                                        width: 56,
+                                                        child: Text(
                                                           e.key,
                                                           style:
                                                               const TextStyle(
                                                             fontSize:
-                                                                13,
+                                                                12,
                                                             fontWeight:
                                                                 FontWeight
                                                                     .w500,
@@ -293,26 +288,31 @@ class _CartScreenState extends State<CartScreen> {
                                                                 _ivory,
                                                           ),
                                                         ),
-                                                        const SizedBox(
-                                                            width:
-                                                                6),
-                                                        const Icon(
+                                                      ),
+                                                      // Arrow (fixed 18).
+                                                      const SizedBox(
+                                                        width: 18,
+                                                        child: Icon(
                                                           Icons
                                                               .arrow_forward,
                                                           size:
-                                                              12,
+                                                              11,
                                                           color:
                                                               _ivory,
                                                         ),
-                                                        const SizedBox(
-                                                            width:
-                                                                6),
-                                                        Text(
+                                                      ),
+                                                      // QUANTITY (fixed 58, right).
+                                                      SizedBox(
+                                                        width: 58,
+                                                        child: Text(
                                                           "${e.value} PCS",
+                                                          textAlign:
+                                                              TextAlign
+                                                                  .right,
                                                           style:
                                                               const TextStyle(
                                                             fontSize:
-                                                                13,
+                                                                12,
                                                             fontWeight:
                                                                 FontWeight
                                                                     .w600,
@@ -320,60 +320,89 @@ class _CartScreenState extends State<CartScreen> {
                                                                 _ivory,
                                                           ),
                                                         ),
-                                                        if (price !=
-                                                                null &&
-                                                            lineTotal !=
-                                                                null) ...[
-                                                          const Text(
-                                                            " × ",
-                                                            style:
-                                                                TextStyle(
-                                                              fontSize:
-                                                                  13,
-                                                              color:
-                                                                  _ivory,
-                                                            ),
+                                                      ),
+                                                      // x (fixed 14).
+                                                      const SizedBox(
+                                                        width: 14,
+                                                        child: Text(
+                                                          "\u00d7",
+                                                          textAlign:
+                                                              TextAlign
+                                                                  .center,
+                                                          style:
+                                                              TextStyle(
+                                                            fontSize:
+                                                                12,
+                                                            color:
+                                                                _ivory,
                                                           ),
-                                                          Text(
-                                                            fmt.format(price),
-                                                            style:
-                                                                const TextStyle(
-                                                              fontSize:
-                                                                  13,
-                                                              color:
-                                                                  _ivory,
-                                                            ),
+                                                        ),
+                                                      ),
+                                                      // RATE (fixed 46, right).
+                                                      SizedBox(
+                                                        width: 46,
+                                                        child: Text(
+                                                          price !=
+                                                                  null
+                                                              ? fmt.format(
+                                                                  price)
+                                                              : "",
+                                                          textAlign:
+                                                              TextAlign
+                                                                  .right,
+                                                          style:
+                                                              const TextStyle(
+                                                            fontSize:
+                                                                12,
+                                                            color:
+                                                                _ivory,
                                                           ),
-                                                          const Text(
-                                                            " = ",
-                                                            style:
-                                                                TextStyle(
-                                                              fontSize:
-                                                                  13,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w700,
-                                                              color:
-                                                                  _ivory,
-                                                            ),
+                                                        ),
+                                                      ),
+                                                      // = (fixed 14).
+                                                      const SizedBox(
+                                                        width: 14,
+                                                        child: Text(
+                                                          "=",
+                                                          textAlign:
+                                                              TextAlign
+                                                                  .center,
+                                                          style:
+                                                              TextStyle(
+                                                            fontSize:
+                                                                12,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .w700,
+                                                            color:
+                                                                _ivory,
                                                           ),
-                                                          Text(
-                                                            fmt.format(
-                                                                lineTotal),
-                                                            style:
-                                                                const TextStyle(
-                                                              fontSize:
-                                                                  13,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w700,
-                                                              color:
-                                                                  _ivory,
-                                                            ),
+                                                        ),
+                                                      ),
+                                                      // AMOUNT (flex, right).
+                                                      Expanded(
+                                                        child: Text(
+                                                          lineTotal !=
+                                                                  null
+                                                              ? fmt.format(
+                                                                  lineTotal)
+                                                              : "",
+                                                          textAlign:
+                                                              TextAlign
+                                                                  .right,
+                                                          style:
+                                                              const TextStyle(
+                                                            fontSize:
+                                                                12,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .w700,
+                                                            color:
+                                                                _ivory,
                                                           ),
-                                                        ],
-                                                      ],
-                                                    ),
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
                                                 );
                                               },
