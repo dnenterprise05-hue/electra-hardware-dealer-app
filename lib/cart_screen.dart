@@ -335,7 +335,7 @@ class _CartScreenState extends State<CartScreen> {
                                                             ),
                                                           ),
                                                           Text(
-                                                            "${fmt.format(price)}/PCS",
+                                                            fmt.format(price),
                                                             style:
                                                                 const TextStyle(
                                                               fontSize:
