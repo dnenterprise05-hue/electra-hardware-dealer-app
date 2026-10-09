@@ -280,6 +280,22 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                                   const SizedBox(height: 9),
                                   Row(
                                     children: [
+                                      Expanded(
+                                        child: Text(
+                                          data["totalEstimate"] !=
+                                                  null
+                                              ? "₹${(data["totalEstimate"] as num).toStringAsFixed(0)}"
+                                              : "",
+                                          style:
+                                              const TextStyle(
+                                            color: _ivory,
+                                            fontWeight:
+                                                FontWeight
+                                                    .w700,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                      ),
                                       Container(
                                         padding:
                                             const EdgeInsets

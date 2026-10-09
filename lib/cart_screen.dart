@@ -600,9 +600,11 @@ class _CartScreenState extends State<CartScreen> {
                                   height: 52,
                                   child:
                                       ElevatedButton.icon(
-                                    onPressed: () =>
-                                        _confirmPinAndSubmit(
-                                            context),
+                                    onPressed: _submitting
+                                        ? null
+                                        : () =>
+                                            _confirmPinAndSubmit(
+                                                context),
                                     style: ElevatedButton
                                         .styleFrom(
                                       backgroundColor:
@@ -618,12 +620,24 @@ class _CartScreenState extends State<CartScreen> {
                                       ),
                                       elevation: 0,
                                     ),
-                                    icon: const Icon(
-                                        Icons.send,
-                                        size: 20),
-                                    label: const Text(
-                                      "SUBMIT ORDER",
-                                      style: TextStyle(
+                                    icon: _submitting
+                                        ? const SizedBox(
+                                            width: 20,
+                                            height: 20,
+                                            child:
+                                                CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: Colors.black,
+                                            ),
+                                          )
+                                        : const Icon(
+                                            Icons.send,
+                                            size: 20),
+                                    label: Text(
+                                      _submitting
+                                          ? "SUBMITTING..."
+                                          : "SUBMIT ORDER",
+                                      style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight:
                                             FontWeight.w700,
@@ -770,6 +784,15 @@ class _CartScreenState extends State<CartScreen> {
       final orderRef =
           FirebaseFirestore.instance.collection("orders").doc();
 
+      // Calculate totals using the same logic as the cart summary.
+      double taxable = 0;
+      for (final item in items) {
+        taxable += item.estimateTotal;
+      }
+      taxable = taxable.roundToDouble();
+      final gst = (taxable * 18 / 100).roundToDouble();
+      final totalEstimate = taxable + gst;
+
       await orderRef.set({
         "dealerMobile": mobile10,
         "dealerUid": user?.uid ?? "",
@@ -781,12 +804,16 @@ class _CartScreenState extends State<CartScreen> {
         "time": DateFormat("hh:mm a").format(DateTime.now()),
         "createdAt": FieldValue.serverTimestamp(),
         "status": "Pending",
+        "taxableAmount": taxable,
+        "gstAmount": gst,
+        "totalEstimate": totalEstimate,
         "products": items.map((item) {
           return {
             "modelNo": item.modelNo,
             "finish": item.finish,
             "imageUrl": item.imageUrl,
             "quantities": item.quantities,
+            "prices": item.prices,
           };
         }).toList(),
       });
