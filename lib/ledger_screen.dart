@@ -1,7 +1,12 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'services/dealer_service.dart';
 import 'widgets/pressable.dart';
 import 'order_details_screen.dart';
@@ -96,6 +101,7 @@ class _Entry {
   final DateTime date;
   final DateTime createdAt;
   final String? reference;
+  final String? invoicePath;
 
   _Entry({
     required this.type,
@@ -104,6 +110,7 @@ class _Entry {
     required this.date,
     required this.createdAt,
     this.reference,
+    this.invoicePath,
   });
 
   /// Display label: just the bill/receipt reference when available,
@@ -446,6 +453,7 @@ class _LedgerBodyState extends State<_LedgerBody> {
                   balance: balance,
                   reference: e.reference,
                   type: 'sales',
+                  invoicePath: e.invoicePath,
                 ));
               } else if (e.type == 'payment') {
                 totalPayment += e.amount;
@@ -754,6 +762,8 @@ class _LedgerBodyState extends State<_LedgerBody> {
       date: readDate(data['date']),
       createdAt: readDate(data['createdAt']),
       reference: (data['reference'] as String?)?.trim(),
+      invoicePath:
+          (data['invoicePath'] as String?)?.trim(),
     );
   }
 
@@ -997,12 +1007,75 @@ class _LedgerBodyState extends State<_LedgerBody> {
       ),
     );
 
-    if (!tappable) return row;
+    // Sales bills are tappable for invoice; bills/receipts with
+    // reference are tappable for order lookup.
+    final hasInvoice = r.type == 'sales' &&
+        (r.invoicePath?.isNotEmpty ?? false);
+    if (!tappable && !hasInvoice) return row;
 
-    // Tapping a bill/receipt row opens the matching order when
-    // one exists; otherwise the tap is a silent no-op.
     return Pressable(
       onTap: () async {
+        // 1. Open attached invoice PDF via authenticated
+        //    download (enforces Storage security rules).
+        if (hasInvoice) {
+          try {
+            final data = await FirebaseStorage
+                .instance
+                .ref(r.invoicePath!.trim())
+                .getData(10 * 1024 * 1024);
+            if (data == null) throw 'empty';
+            if (!context.mounted) return;
+            // Write to temp and open with system viewer
+            final dir =
+                await getTemporaryDirectory();
+            final file = File(
+                '${dir.path}/invoice_${r.reference ?? 'bill'}.pdf');
+            await file.writeAsBytes(data);
+            final uri = Uri.file(file.path);
+            if (await canLaunchUrl(uri)) {
+              await launchUrl(uri);
+            } else if (context.mounted) {
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(
+                const SnackBar(
+                  content: Text(
+                      'Could not open invoice.'),
+                ),
+              );
+            }
+          } catch (e) {
+            if (context.mounted) {
+              final msg = e.toString().contains(
+                      'permission-denied')
+                  ? 'Access denied to this invoice.'
+                  : 'Could not open invoice.';
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(
+                SnackBar(
+                  content: Text(msg),
+                ),
+              );
+            }
+          }
+          return;
+        }
+
+        // 2. No invoice: helpful message for sales bills
+        if (r.type == 'sales') {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context)
+                .showSnackBar(
+              const SnackBar(
+                content: Text(
+                    'No invoice attached to this bill.'),
+              ),
+            );
+          }
+          return;
+        }
+
+        // 3. Payment entries: order lookup (existing behavior)
+        if (!tappable) return;
         final ref = r.reference!.trim();
         try {
           final snap = await FirebaseFirestore.instance
@@ -1100,6 +1173,7 @@ class _Row {
   final bool isOpening;
   final String? reference;
   final String type;
+  final String? invoicePath;
 
   _Row({
     required this.date,
@@ -1110,5 +1184,6 @@ class _Row {
     this.isOpening = false,
     this.reference,
     this.type = '',
+    this.invoicePath,
   });
 }

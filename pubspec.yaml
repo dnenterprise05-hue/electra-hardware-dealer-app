@@ -16,8 +16,10 @@ dependencies:
   firebase_core: ^4.0.0
   firebase_auth: ^6.0.0
   cloud_firestore: ^6.0.0
+  firebase_storage: ^13.0.3
   intl: ^0.20.2
   url_launcher: ^6.3.1
+  path_provider: ^2.1.4
   pinput: ^5.0.0
   flutter_secure_storage: ^9.2.4
 
