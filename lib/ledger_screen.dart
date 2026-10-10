@@ -503,21 +503,24 @@ class _LedgerBodyState extends State<_LedgerBody> {
                           ),
                         ),
                         const SizedBox(height: 6),
-                        // City + GST in compact centered row
-                        Row(
-                          mainAxisAlignment:
-                              MainAxisAlignment
-                                  .center,
-                          children: [
-                            _compactInfo(
-                                'CITY', city,
-                                centered: true),
-                            const SizedBox(
-                                width: 24),
-                            _compactInfo(
-                                'GST NO.', gst,
-                                centered: true),
-                          ],
+                        // City + GST on one centered line
+                        Text(
+                          'CITY : ${city.isEmpty ? '—' : city.toUpperCase()}'
+                          '   |   '
+                          'GST : ${gst.isEmpty ? '—' : gst.toUpperCase()}',
+                          textAlign:
+                              TextAlign.center,
+                          maxLines: 1,
+                          overflow:
+                              TextOverflow.ellipsis,
+                          style:
+                              const TextStyle(
+                            color: _ivory,
+                            fontSize: 12,
+                            fontWeight:
+                                FontWeight.w600,
+                            letterSpacing: 1.0,
+                          ),
                         ),
                       ],
                     ),
@@ -779,44 +782,6 @@ class _LedgerBodyState extends State<_LedgerBody> {
           ),
         ),
       ),
-    );
-  }
-
-  /// Compact label-value for party details.
-  static Widget _compactInfo(String label, String value,
-      {bool centered = false}) {
-    final align = centered
-        ? CrossAxisAlignment.center
-        : CrossAxisAlignment.start;
-    final textAlign =
-        centered ? TextAlign.center : TextAlign.left;
-    return Column(
-      crossAxisAlignment: align,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          label,
-          textAlign: textAlign,
-          style: const TextStyle(
-            color: _ivory,
-            fontSize: 9,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 1.2,
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          value.isEmpty ? '—' : value,
-          textAlign: textAlign,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            color: _ivory,
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
     );
   }
 
@@ -1086,7 +1051,7 @@ class _LedgerBodyState extends State<_LedgerBody> {
             flex: _fDatePart,
             child: const Text(
               'TOTAL',
-              textAlign: TextAlign.left,
+              textAlign: TextAlign.center,
               style: TextStyle(
                 color: _ivory,
                 fontSize: 11,
