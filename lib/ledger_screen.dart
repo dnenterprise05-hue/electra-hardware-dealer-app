@@ -8,7 +8,6 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'services/dealer_service.dart';
-import 'widgets/pressable.dart';
 import 'order_details_screen.dart';
 
 /// Dealer Ledger — luxury showroom theme.
@@ -914,9 +913,6 @@ class _LedgerBodyState extends State<_LedgerBody> {
   }
 
   static Widget _tableRow(BuildContext context, _Row r) {
-    final tappable = (r.reference?.isNotEmpty ?? false) &&
-        (r.type == 'sales' || r.type == 'payment');
-
     Widget row = Container(
       decoration: BoxDecoration(
         border: Border(
@@ -956,21 +952,7 @@ class _LedgerBodyState extends State<_LedgerBody> {
                   ),
                 ),
                 const SizedBox(height: 2),
-                Text(
-                  r.particulars.isEmpty
-                      ? '—'
-                      : r.particulars,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow:
-                      TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: _ivory,
-                    fontSize: 11,
-                    fontWeight:
-                        FontWeight.w600,
-                  ),
-                ),
+                _buildTappableParticulars(context, r),
               ],
             ),
           ),
@@ -1007,98 +989,161 @@ class _LedgerBodyState extends State<_LedgerBody> {
       ),
     );
 
-    // Sales bills are tappable for invoice; bills/receipts with
-    // reference are tappable for order lookup.
-    final hasInvoice = r.type == 'sales' &&
+    // Only the bill number text is tappable (not the whole row).
+    // See _buildTappableParticulars for per-text tap handling.
+    return row;
+  }
+
+  /// Builds the particulars text. Only the bill number of a Sales
+  /// Bill is tappable: opens the invoice PDF if attached, else
+  /// shows a message. Payment references open the order (existing
+  /// behavior). All other text is non-tappable.
+  static Widget _buildTappableParticulars(
+      BuildContext context, _Row r) {
+    final text = Text(
+      r.particulars.isEmpty ? '—' : r.particulars,
+      textAlign: TextAlign.center,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+      style: const TextStyle(
+        color: _ivory,
+        fontSize: 11,
+        fontWeight: FontWeight.w600,
+      ),
+    );
+
+    final isSalesBill = r.type == 'sales';
+    final hasReference =
+        (r.reference?.isNotEmpty ?? false);
+    final hasInvoice = isSalesBill &&
         (r.invoicePath?.isNotEmpty ?? false);
-    if (!tappable && !hasInvoice) return row;
 
-    return Pressable(
-      onTap: () async {
-        // 1. Open attached invoice PDF via authenticated
-        //    download (enforces Storage security rules).
-        if (hasInvoice) {
-          try {
-            final data = await FirebaseStorage
-                .instance
-                .ref(r.invoicePath!.trim())
-                .getData(10 * 1024 * 1024);
-            if (data == null) throw 'empty';
-            if (!context.mounted) return;
-            // Write to temp and open with system viewer
-            final dir =
-                await getTemporaryDirectory();
-            final file = File(
-                '${dir.path}/invoice_${r.reference ?? 'bill'}.pdf');
-            await file.writeAsBytes(data);
-            final uri = Uri.file(file.path);
-            if (await canLaunchUrl(uri)) {
-              await launchUrl(uri);
-            } else if (context.mounted) {
-              ScaffoldMessenger.of(context)
-                  .showSnackBar(
-                const SnackBar(
-                  content: Text(
-                      'Could not open invoice.'),
-                ),
-              );
-            }
-          } catch (e) {
-            if (context.mounted) {
-              final msg = e.toString().contains(
-                      'permission-denied')
-                  ? 'Access denied to this invoice.'
-                  : 'Could not open invoice.';
-              ScaffoldMessenger.of(context)
-                  .showSnackBar(
-                SnackBar(
-                  content: Text(msg),
-                ),
-              );
-            }
-          }
-          return;
-        }
+    // Non-tappable: opening rows, empty particulars, or
+    // sales/payment without actionable reference
+    if (r.particulars.isEmpty) return text;
+    if (!isSalesBill && !hasReference) return text;
 
-        // 2. No invoice: helpful message for sales bills
-        if (r.type == 'sales') {
-          if (context.mounted) {
-            ScaffoldMessenger.of(context)
-                .showSnackBar(
+    return GestureDetector(
+      onTap: () {
+        if (isSalesBill) {
+          if (hasInvoice) {
+            _openInvoice(context, r);
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text(
                     'No invoice attached to this bill.'),
               ),
             );
           }
-          return;
-        }
-
-        // 3. Payment entries: order lookup (existing behavior)
-        if (!tappable) return;
-        final ref = r.reference!.trim();
-        try {
-          final snap = await FirebaseFirestore.instance
-              .collection('orders')
-              .where('orderNo', isEqualTo: ref)
-              .limit(1)
-              .get();
-          if (snap.docs.isNotEmpty && context.mounted) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => OrderDetailsScreen(
-                  order: snap.docs.first.data(),
-                ),
-              ),
-            );
-          }
-        } catch (_) {
-          // Non-breaking: keep the row inert on any failure.
+        } else if (hasReference) {
+          // Payment In: existing order-lookup behavior
+          _openOrder(context, r.reference!.trim());
         }
       },
-      child: row,
+      child: text,
     );
+  }
+
+  /// Tracks in-progress invoice downloads to prevent duplicates.
+  static final Set<String> _downloadingInvoices = {};
+
+  /// Downloads the invoice PDF via authenticated Firebase Storage
+  /// access (enforces Storage security rules server-side).
+  /// Shows loading feedback and prevents duplicate downloads.
+  static Future<void> _openInvoice(
+      BuildContext context, _Row r) async {
+    final path = r.invoicePath!.trim();
+
+    // Prevent multiple simultaneous downloads of the same invoice
+    if (_downloadingInvoices.contains(path)) return;
+    _downloadingInvoices.add(path);
+
+    // Show loading feedback
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Row(
+          children: [
+            SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(width: 12),
+            Text('Downloading invoice...'),
+          ],
+        ),
+        duration: Duration(seconds: 30),
+      ),
+    );
+
+    try {
+      final data = await FirebaseStorage.instance
+          .ref(path)
+          .getData(10 * 1024 * 1024);
+      if (data == null) throw 'empty';
+      if (!context.mounted) return;
+      final dir = await getTemporaryDirectory();
+      final file = File(
+          '${dir.path}/invoice_${r.reference ?? 'bill'}.pdf');
+      await file.writeAsBytes(data);
+      if (!context.mounted) return;
+      // Dismiss loading indicator
+      ScaffoldMessenger.of(context)
+          .hideCurrentSnackBar();
+      final uri = Uri.file(file.path);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      } else if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content:
+                Text('Could not open invoice.'),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        // Dismiss loading indicator
+        ScaffoldMessenger.of(context)
+            .hideCurrentSnackBar();
+        final msg = e.toString().contains('permission-denied')
+            ? 'Access denied to this invoice.'
+            : 'Could not open invoice.';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(msg)),
+        );
+      }
+    } finally {
+      _downloadingInvoices.remove(path);
+    }
+  }
+
+  /// Opens the matching order for a bill/receipt reference.
+  static Future<void> _openOrder(
+      BuildContext context, String ref) async {
+    try {
+      final snap = await FirebaseFirestore.instance
+          .collection('orders')
+          .where('orderNo', isEqualTo: ref)
+          .limit(1)
+          .get();
+      if (snap.docs.isNotEmpty && context.mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => OrderDetailsScreen(
+              order: snap.docs.first.data(),
+            ),
+          ),
+        );
+      }
+    } catch (_) {
+      // Non-breaking: keep inert on any failure.
+    }
   }
 
   static Widget _tableTotal({
