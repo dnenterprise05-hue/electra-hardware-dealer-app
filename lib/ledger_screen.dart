@@ -873,13 +873,13 @@ class _LedgerBodyState extends State<_LedgerBody> {
       child: Row(
         children: [
           _hcell('DATE / PARTICULARS', _fDatePart,
-              TextAlign.left),
+              TextAlign.center),
           _vdiv(18),
-          _hcell('SALES', _fAmt, TextAlign.right),
+          _hcell('SALES', _fAmt, TextAlign.center),
           _vdiv(18),
-          _hcell('PAYMENT', _fAmt, TextAlign.right),
+          _hcell('PAYMENT', _fAmt, TextAlign.center),
           _vdiv(18),
-          _hcell('TOTAL', _fBal, TextAlign.right),
+          _hcell('TOTAL', _fBal, TextAlign.center),
         ],
       ),
     );
@@ -961,7 +961,7 @@ class _LedgerBodyState extends State<_LedgerBody> {
             flex: _fDatePart,
             child: Column(
               crossAxisAlignment:
-                  CrossAxisAlignment.start,
+                  CrossAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
@@ -969,11 +969,12 @@ class _LedgerBodyState extends State<_LedgerBody> {
                       ? '—'
                       : LedgerScreen._dateFmt
                           .format(r.date!),
+                  textAlign: TextAlign.center,
                   maxLines: 1,
                   overflow:
                       TextOverflow.ellipsis,
                   style: const TextStyle(
-                    color: _ivorySoft,
+                    color: _ivory,
                     fontSize: 10,
                     fontWeight:
                         FontWeight.w500,
@@ -984,6 +985,7 @@ class _LedgerBodyState extends State<_LedgerBody> {
                   r.particulars.isEmpty
                       ? '—'
                       : r.particulars,
+                  textAlign: TextAlign.center,
                   maxLines: 2,
                   overflow:
                       TextOverflow.ellipsis,
@@ -1004,8 +1006,8 @@ class _LedgerBodyState extends State<_LedgerBody> {
                     .format(r.sales)
                 : '—',
             _fAmt,
-            _gold,
-            TextAlign.right,
+            _ivory,
+            TextAlign.center,
           ),
           _vdiv(24),
           _bcell(
@@ -1014,16 +1016,16 @@ class _LedgerBodyState extends State<_LedgerBody> {
                     .format(r.payment)
                 : '—',
             _fAmt,
-            _ivorySoft,
-            TextAlign.right,
+            _ivory,
+            TextAlign.center,
           ),
           _vdiv(24),
           _bcell(
             LedgerScreen._inr
                 .format(r.balance),
             _fBal,
-            _goldBright,
-            TextAlign.right,
+            _ivory,
+            TextAlign.center,
             true,
           ),
         ],
@@ -1097,24 +1099,24 @@ class _LedgerBodyState extends State<_LedgerBody> {
           _bcell(
             LedgerScreen._inr.format(totalSales),
             _fAmt,
-            _gold,
-            TextAlign.right,
+            _ivory,
+            TextAlign.center,
             true,
           ),
           _vdiv(20),
           _bcell(
             LedgerScreen._inr.format(totalPayment),
             _fAmt,
-            _ivorySoft,
-            TextAlign.right,
+            _ivory,
+            TextAlign.center,
             true,
           ),
           _vdiv(20),
           _bcell(
             LedgerScreen._inr.format(outstanding),
             _fBal,
-            _goldBright,
-            TextAlign.right,
+            _ivory,
+            TextAlign.center,
             true,
           ),
         ],
