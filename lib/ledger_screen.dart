@@ -106,16 +106,12 @@ class _Entry {
     this.reference,
   });
 
-  /// Display label: "Bill No. X" / "Receipt No. X" when a
-  /// reference exists, otherwise the generic particulars.
+  /// Display label: just the bill/receipt reference when available,
+  /// otherwise the generic particulars. No "Bill No." prefix.
   String get displayParticulars {
     final ref = reference?.trim() ?? '';
-    if (type == 'sales') {
-      return ref.isNotEmpty ? 'Bill No. $ref' : particulars;
-    }
-    if (type == 'payment') {
-      return ref.isNotEmpty ? 'Receipt No. $ref' : particulars;
-    }
+    if (ref.isNotEmpty) return ref;
+    if (type == 'opening') return 'Opening Balance';
     return particulars;
   }
 }
@@ -482,16 +478,45 @@ class _LedgerBodyState extends State<_LedgerBody> {
                     CrossAxisAlignment.stretch,
                 children: [
                   _glassPanel(
+                    padding:
+                        const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10),
                     child: Column(
                       crossAxisAlignment:
                           CrossAxisAlignment.start,
                       children: [
-                        _infoRow(
-                            'PARTY NAME', partyName),
-                        const SizedBox(height: 8),
-                        _infoRow('CITY', city),
-                        const SizedBox(height: 8),
-                        _infoRow('GST NO.', gst),
+                        // Party name (full width, prominent)
+                        Text(
+                          partyName,
+                          maxLines: 1,
+                          overflow:
+                              TextOverflow.ellipsis,
+                          style:
+                              const TextStyle(
+                            color: _ivory,
+                            fontSize: 15,
+                            fontWeight:
+                                FontWeight.w700,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        // City + GST in compact row
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _compactInfo(
+                                  'CITY', city),
+                            ),
+                            const SizedBox(
+                                width: 12),
+                            Expanded(
+                              child: _compactInfo(
+                                  'GST NO.', gst),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ),
@@ -753,6 +778,36 @@ class _LedgerBodyState extends State<_LedgerBody> {
     );
   }
 
+  /// Compact label-value for 2-column party details.
+  static Widget _compactInfo(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: _ivory,
+            fontSize: 9,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 1.2,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value.isEmpty ? '—' : value,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            color: _ivory,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
   static Widget _infoRow(String label, String value) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -786,12 +841,11 @@ class _LedgerBodyState extends State<_LedgerBody> {
   // ---- Transaction table ----
 
   // Flex proportions — table always fits the screen width,
-  // no horizontal scroll. DATE 17 / PARTICULARS 28 /
-  // SALES 18 / PAYMENT 18 / BALANCE 19.
-  static const int _fDate = 17;
-  static const int _fPart = 29;
-  static const int _fAmt = 18;
-  static const int _fBal = 18;
+  // Compact 4-column layout, no horizontal scroll.
+  // DATE/PARTICULARS 40 / SALES 20 / PAYMENT 20 / TOTAL 20.
+  static const int _fDatePart = 40;
+  static const int _fAmt = 20;
+  static const int _fBal = 20;
 
   static Widget _tableHeader() {
     return Container(
@@ -803,18 +857,17 @@ class _LedgerBodyState extends State<_LedgerBody> {
         ),
       ),
       padding: const EdgeInsets.symmetric(
-          horizontal: 8, vertical: 10),
+          horizontal: 8, vertical: 8),
       child: Row(
         children: [
-          _hcell('DATE', _fDate, TextAlign.center),
+          _hcell('DATE / PARTICULARS', _fDatePart,
+              TextAlign.left),
           _vdiv(18),
-          _hcell('PARTICULARS', _fPart, TextAlign.center),
+          _hcell('SALES', _fAmt, TextAlign.right),
           _vdiv(18),
-          _hcell('SALES (₹)', _fAmt, TextAlign.center),
+          _hcell('PAYMENT', _fAmt, TextAlign.right),
           _vdiv(18),
-          _hcell('PAYMENT (₹)', _fAmt, TextAlign.center),
-          _vdiv(18),
-          _hcell('BALANCE (₹)', _fBal, TextAlign.center),
+          _hcell('TOTAL', _fBal, TextAlign.right),
         ],
       ),
     );
@@ -886,44 +939,79 @@ class _LedgerBodyState extends State<_LedgerBody> {
         ),
       ),
       padding: const EdgeInsets.symmetric(
-          horizontal: 8, vertical: 9),
+          horizontal: 8, vertical: 7),
       child: Row(
+        crossAxisAlignment:
+            CrossAxisAlignment.center,
         children: [
-          _bcell(
-            r.date == null
-                ? '—'
-                : LedgerScreen._dateFmt.format(r.date!),
-            _fDate,
-            _ivorySoft,
-            TextAlign.center,
+          // Combined Date / Particulars column
+          Expanded(
+            flex: _fDatePart,
+            child: Column(
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  r.date == null
+                      ? '—'
+                      : LedgerScreen._dateFmt
+                          .format(r.date!),
+                  maxLines: 1,
+                  overflow:
+                      TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: _ivorySoft,
+                    fontSize: 10,
+                    fontWeight:
+                        FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  r.particulars.isEmpty
+                      ? '—'
+                      : r.particulars,
+                  maxLines: 2,
+                  overflow:
+                      TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: _ivory,
+                    fontSize: 11,
+                    fontWeight:
+                        FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
           ),
-          _vdiv(26),
-          _bcell(r.particulars, _fPart, _ivory,
-              TextAlign.center),
-          _vdiv(26),
+          _vdiv(24),
           _bcell(
             r.sales > 0
-                ? LedgerScreen._inr.format(r.sales)
+                ? LedgerScreen._inr
+                    .format(r.sales)
                 : '—',
             _fAmt,
             _gold,
-            TextAlign.center,
+            TextAlign.right,
           ),
-          _vdiv(26),
+          _vdiv(24),
           _bcell(
             r.payment > 0
-                ? LedgerScreen._inr.format(r.payment)
+                ? LedgerScreen._inr
+                    .format(r.payment)
                 : '—',
             _fAmt,
             _ivorySoft,
-            TextAlign.center,
+            TextAlign.right,
           ),
-          _vdiv(26),
+          _vdiv(24),
           _bcell(
-            LedgerScreen._inr.format(r.balance),
+            LedgerScreen._inr
+                .format(r.balance),
             _fBal,
             _goldBright,
-            TextAlign.center,
+            TextAlign.right,
             true,
           ),
         ],
@@ -979,17 +1067,17 @@ class _LedgerBodyState extends State<_LedgerBody> {
           horizontal: 8, vertical: 10),
       child: Row(
         children: [
-          // TOTAL spans DATE + PARTICULARS, centered.
+          // TOTAL spans the DATE/PARTICULARS column.
           Expanded(
-            flex: _fDate + _fPart,
+            flex: _fDatePart,
             child: const Text(
               'TOTAL',
-              textAlign: TextAlign.center,
+              textAlign: TextAlign.left,
               style: TextStyle(
                 color: _ivory,
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
-                letterSpacing: 0.1,
+                letterSpacing: 0.5,
               ),
             ),
           ),
@@ -997,24 +1085,24 @@ class _LedgerBodyState extends State<_LedgerBody> {
           _bcell(
             LedgerScreen._inr.format(totalSales),
             _fAmt,
-            _ivory,
-            TextAlign.center,
+            _gold,
+            TextAlign.right,
             true,
           ),
           _vdiv(20),
           _bcell(
             LedgerScreen._inr.format(totalPayment),
             _fAmt,
-            _ivory,
-            TextAlign.center,
+            _ivorySoft,
+            TextAlign.right,
             true,
           ),
           _vdiv(20),
           _bcell(
             LedgerScreen._inr.format(outstanding),
             _fBal,
-            _ivory,
-            TextAlign.center,
+            _goldBright,
+            TextAlign.right,
             true,
           ),
         ],
