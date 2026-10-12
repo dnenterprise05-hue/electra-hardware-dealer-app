@@ -1,12 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'services/dealer_service.dart';
 import 'order_details_screen.dart';
 
@@ -994,10 +990,9 @@ class _LedgerBodyState extends State<_LedgerBody> {
     return row;
   }
 
-  /// Builds the particulars text. Only the bill number of a Sales
-  /// Bill is tappable: opens the invoice PDF if attached, else
-  /// shows a message. Payment references open the order (existing
-  /// behavior). All other text is non-tappable.
+  /// Builds the particulars text. Payment references are tappable
+  /// to open the order (existing behavior). Sales bills and all
+  /// other text are non-tappable (invoice PDF feature removed).
   static Widget _buildTappableParticulars(
       BuildContext context, _Row r) {
     final text = Text(
@@ -1012,114 +1007,21 @@ class _LedgerBodyState extends State<_LedgerBody> {
       ),
     );
 
-    final isSalesBill = r.type == 'sales';
     final hasReference =
         (r.reference?.isNotEmpty ?? false);
-    final hasInvoice = isSalesBill &&
-        (r.invoicePath?.isNotEmpty ?? false);
 
-    // Non-tappable: opening rows, empty particulars, or
-    // sales/payment without actionable reference
+    // Non-tappable: opening rows, empty particulars, sales bills,
+    // or payments without actionable reference
     if (r.particulars.isEmpty) return text;
-    if (!isSalesBill && !hasReference) return text;
+    if (r.type != 'payment' || !hasReference) return text;
 
     return GestureDetector(
       onTap: () {
-        if (isSalesBill) {
-          if (hasInvoice) {
-            _openInvoice(context, r);
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                    'No invoice attached to this bill.'),
-              ),
-            );
-          }
-        } else if (hasReference) {
-          // Payment In: existing order-lookup behavior
-          _openOrder(context, r.reference!.trim());
-        }
+        // Payment In: existing order-lookup behavior
+        _openOrder(context, r.reference!.trim());
       },
       child: text,
     );
-  }
-
-  /// Tracks in-progress invoice downloads to prevent duplicates.
-  static final Set<String> _downloadingInvoices = {};
-
-  /// Downloads the invoice PDF via authenticated Firebase Storage
-  /// access (enforces Storage security rules server-side).
-  /// Shows loading feedback and prevents duplicate downloads.
-  static Future<void> _openInvoice(
-      BuildContext context, _Row r) async {
-    final path = r.invoicePath!.trim();
-
-    // Prevent multiple simultaneous downloads of the same invoice
-    if (_downloadingInvoices.contains(path)) return;
-    _downloadingInvoices.add(path);
-
-    // Show loading feedback
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Row(
-          children: [
-            SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: Colors.white,
-              ),
-            ),
-            SizedBox(width: 12),
-            Text('Downloading invoice...'),
-          ],
-        ),
-        duration: Duration(seconds: 30),
-      ),
-    );
-
-    try {
-      final data = await FirebaseStorage.instance
-          .ref(path)
-          .getData(10 * 1024 * 1024);
-      if (data == null) throw 'empty';
-      if (!context.mounted) return;
-      final dir = await getTemporaryDirectory();
-      final file = File(
-          '${dir.path}/invoice_${r.reference ?? 'bill'}.pdf');
-      await file.writeAsBytes(data);
-      if (!context.mounted) return;
-      // Dismiss loading indicator
-      ScaffoldMessenger.of(context)
-          .hideCurrentSnackBar();
-      final uri = Uri.file(file.path);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri);
-      } else if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content:
-                Text('Could not open invoice.'),
-          ),
-        );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        // Dismiss loading indicator
-        ScaffoldMessenger.of(context)
-            .hideCurrentSnackBar();
-        final msg = e.toString().contains('permission-denied')
-            ? 'Access denied to this invoice.'
-            : 'Could not open invoice.';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(msg)),
-        );
-      }
-    } finally {
-      _downloadingInvoices.remove(path);
-    }
   }
 
   /// Opens the matching order for a bill/receipt reference.
