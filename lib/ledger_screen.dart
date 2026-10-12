@@ -931,23 +931,27 @@ class _LedgerBodyState extends State<_LedgerBody> {
                   CrossAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  r.date == null
-                      ? '—'
-                      : LedgerScreen._dateFmt
-                          .format(r.date!),
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow:
-                      TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: _ivory,
-                    fontSize: 10,
-                    fontWeight:
-                        FontWeight.w500,
+                // Opening Balance has no date: it always represents
+                // the balance at the start of the selected FY.
+                if (!r.isOpening) ...[
+                  Text(
+                    r.date == null
+                        ? '—'
+                        : LedgerScreen._dateFmt
+                            .format(r.date!),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow:
+                        TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: _ivory,
+                      fontSize: 10,
+                      fontWeight:
+                          FontWeight.w500,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 2),
+                  const SizedBox(height: 2),
+                ],
                 _buildTappableParticulars(context, r),
               ],
             ),
