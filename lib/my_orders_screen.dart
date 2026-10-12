@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'widgets/pressable.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -24,6 +25,14 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
   static const _ivory = Color(0xFFFFF8EE);
   static const _ivorySoft = Color(0xFFE4D3AC);
   static const _muted = Color(0xFFB9AC93);
+
+  /// Indian currency formatter (₹9,995). Shared pattern used across
+  /// cart, product details and ledger screens. Display only.
+  static final _inr0 = NumberFormat.currency(
+    locale: 'en_IN',
+    symbol: '₹',
+    decimalDigits: 0,
+  );
 
   String? _mobile;
   bool _loading = true;
@@ -284,7 +293,8 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                                         child: Text(
                                           data["totalEstimate"] !=
                                                   null
-                                              ? "₹${(data["totalEstimate"] as num).toStringAsFixed(0)}"
+                                              ? _inr0.format(
+                                                  data["totalEstimate"])
                                               : "",
                                           style:
                                               const TextStyle(
