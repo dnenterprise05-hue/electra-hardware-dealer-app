@@ -230,7 +230,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 "${order["time"] != null ? "  •  ${order["time"]}" : ""}",
                 style: const TextStyle(
                   fontSize: 13.5,
-                  color: _ivorySoft,
+                  color: _ivory,
                 ),
               ),
               const SizedBox(height: 10),
@@ -248,7 +248,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 child: Text(
                   statusLabel,
                   style: const TextStyle(
-                    color: _goldBright,
+                    color: _ivory,
                     fontWeight: FontWeight.w600,
                     fontSize: 12.5,
                     letterSpacing: 0.4,
@@ -348,7 +348,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                             "Colour : ${product["finish"] ?? "-"}",
                             style: const TextStyle(
                               fontSize: 13.5,
-                              color: _ivorySoft,
+                              color: _ivory,
                             ),
                           ),
                         ],
@@ -449,7 +449,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                             style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
-                              color: _goldBright,
+                              color: _ivory,
                             ),
                           ),
                         ),
@@ -518,7 +518,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             style: TextStyle(
               fontSize: bold ? 18 : 15,
               fontWeight: FontWeight.w700,
-              color: bold ? _goldBright : _ivory,
+              color: _ivory,
             ),
           ),
         ],
