@@ -283,7 +283,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                                     "${data["date"] ?? "-"}",
                                     style: const TextStyle(
                                       fontSize: 13.5,
-                                      color: _ivorySoft,
+                                      color: _ivory,
                                     ),
                                   ),
                                   const SizedBox(height: 9),
@@ -347,7 +347,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                                         "${products.length} Model",
                                         style:
                                             const TextStyle(
-                                          color: _muted,
+                                          color: _ivory,
                                           fontSize: 13.5,
                                         ),
                                       ),
