@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import 'force_password_change_screen.dart';
 import 'pin_screen.dart';
 import 'services/dealer_service.dart';
 import 'services/favourite_service.dart';
@@ -182,13 +183,25 @@ class _LoginScreenState extends State<LoginScreen>
         isLoading = false;
       });
 
+      // Enforce password change for temporary credentials.
+      final mustChangePassword =
+          dealerData['mustChangePassword'] == true;
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => PinScreen(
-            mode: PinMode.create,
-            dealerCode: dealerCode,
-          ),
+          builder: (_) =>
+              mustChangePassword
+                  ? ForcePasswordChangeScreen(
+                      dealerDocId:
+                          dealerDoc.id,
+                      dealerCode:
+                          dealerCode,
+                    )
+                  : PinScreen(
+                      mode: PinMode.create,
+                      dealerCode: dealerCode,
+                    ),
         ),
       );
     } on FirebaseAuthException catch (e) {

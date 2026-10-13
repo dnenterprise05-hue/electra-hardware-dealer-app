@@ -76,6 +76,7 @@ class _PinScreenState extends State<PinScreen> {
   int _failedAttempts = 0;
   bool _lockedOut = false;
   String _ownerCode = '';
+  String? _firmName;
 
   static const int _maxAttempts = 5;
 
@@ -85,13 +86,18 @@ class _PinScreenState extends State<PinScreen> {
   void initState() {
     super.initState();
     _ownerCode = widget.dealerCode;
-    if (!_isCreate && _ownerCode.isEmpty) {
-      PinService.pinOwnerCode().then((code) {
-        if (!mounted) return;
-        setState(() {
-          _ownerCode = code ?? '';
+    if (!_isCreate) {
+      if (_ownerCode.isEmpty) {
+        PinService.pinOwnerCode().then((code) {
+          if (!mounted) return;
+          setState(() {
+            _ownerCode = code ?? '';
+          });
+          _loadFirmName();
         });
-      });
+      } else {
+        _loadFirmName();
+      }
     }
   }
 
@@ -109,6 +115,38 @@ class _PinScreenState extends State<PinScreen> {
     setState(() {
       _error = message;
     });
+  }
+
+  /// Loads the dealer's firm name for display in unlock mode.
+  /// Uses the session if available, otherwise fetches from Firestore
+  /// by dealer code. Never blocks PIN entry on failure.
+  Future<void> _loadFirmName() async {
+    // Prefer the live session (set after login or PIN restore).
+    final sessionName =
+        (DealerService.dealerData?['firmName'] as String?)
+            ?.trim();
+    if (sessionName != null && sessionName.isNotEmpty) {
+      if (!mounted) return;
+      setState(() => _firmName = sessionName);
+      return;
+    }
+    // Fall back to a direct Firestore lookup by dealer code.
+    final code = _ownerCode.isNotEmpty
+        ? _ownerCode
+        : await PinService.pinOwnerCode() ?? '';
+    if (code.isEmpty) return;
+    try {
+      final doc =
+          await DealerService.findDealerByCode(code);
+      final name =
+          (doc?.data()?['firmName'] as String?)?.trim();
+      if (!mounted) return;
+      if (name != null && name.isNotEmpty) {
+        setState(() => _firmName = name);
+      }
+    } catch (_) {
+      // Display falls back to dealer code; PIN entry unaffected.
+    }
   }
 
   // ------------------------- UNLOCK -------------------------
@@ -407,9 +445,13 @@ class _PinScreenState extends State<PinScreen> {
                     ),
                     if (!_isCreate) ...[
                       const SizedBox(height: 4),
-                      const Text(
-                        'D N ENTERPRISE',
-                        style: TextStyle(
+                      Text(
+                        _firmName?.isNotEmpty == true
+                            ? _firmName!
+                            : widget.dealerCode.isNotEmpty
+                                ? widget.dealerCode
+                                : _ownerCode,
+                        style: const TextStyle(
                           fontSize: 14,
                           color: Color(0xFFFFF8EE),
                           fontWeight: FontWeight.w500,
