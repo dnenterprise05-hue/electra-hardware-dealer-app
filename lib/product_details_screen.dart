@@ -349,6 +349,25 @@ class _ProductDetailsBodyState
   /// only those finishes — deselected finishes disappear on the next
   /// sync without requiring an app restart.
   /// Legacy products without embedded finishes keep the default list.
+  /// Handles finish selection from the dropdown.
+  /// Updates pricing/discount for the newly selected finish.
+  Future<void> _selectFinish(String finish) async {
+    if (finish == selectedFinish) return;
+    setState(() {
+      selectedFinish = finish;
+      _pricingLoaded = false;
+    });
+    final discountResult = await PricingService.discountFor(
+        widget.category, finish);
+    if (mounted) {
+      setState(() {
+        _discountPct = discountResult.value;
+        _discountSource = discountResult.source;
+        _pricingLoaded = true;
+      });
+    }
+  }
+
   void _loadFinishes() {
     final loaded = ProductDetailsScreen.parseProductFinishes(
         widget.productData);
@@ -695,113 +714,89 @@ class _ProductDetailsBodyState
                         const SizedBox(height: 24),
 
                         // ---------- COLOUR ----------
-                        const Text(
-                          "COLOUR",
-                          style: TextStyle(
-                            color: _ivory,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 1.8,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Wrap(
-                          spacing: 10,
-                          runSpacing: 10,
-                          children:
-                              finishes.map((finish) {
-                            final selected =
-                                finish == selectedFinish;
-                            // Glass colour chip — same ~10%
-                            // frost as the size panels.
-                            return Container(
-                              decoration: BoxDecoration(
-                                borderRadius:
-                                    BorderRadius.circular(
-                                        10),
-                                border: Border.all(
-                                  color: _gold.withValues(
-                                      alpha: selected
-                                          ? 0.9
-                                          : 0.35),
-                                ),
+                        // Compact horizontal finish selector — one
+                        // dropdown replacing the multi-chip Wrap.
+                        // Options come from Firestore via `finishes`.
+                        Row(
+                          children: [
+                            const Text(
+                              "COLOUR",
+                              style: TextStyle(
+                                color: _ivory,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 1.8,
                               ),
-                              child: ClipRRect(
-                                borderRadius:
-                                    BorderRadius.circular(
-                                        10),
-                                child: BackdropFilter(
-                                  filter: ImageFilter.blur(
-                                      sigmaX: 2.5,
-                                      sigmaY: 2.5),
-                                  child: Container(
-                                    color: selected
-                                        ? _gold.withValues(
-                                            alpha: 0.85)
-                                        : Colors.black
-                                            .withValues(
-                                                alpha:
-                                                    0.10),
-                                    child: Pressable(
-                                      borderRadius:
-                                          BorderRadius
-                                              .circular(
-                                                  10),
-                                      onTap: () async {
-                                        setState(() {
-                                          selectedFinish =
-                                              finish;
-                                          _pricingLoaded =
-                                              false;
-                                        });
-                                        final discountResult =
-                                            await PricingService
-                                                .discountFor(
-                                                    widget
-                                                        .category,
-                                                    finish);
-                                        if (mounted) {
-                                          setState(() {
-                                            _discountPct =
-                                                discountResult
-                                                    .value;
-                                            _discountSource =
-                                                discountResult
-                                                    .source;
-                                            _pricingLoaded =
-                                                true;
-                                          });
-                                        }
-                                      },
-                                      child: Padding(
-                                        padding:
-                                            const EdgeInsets
-                                                .symmetric(
-                                          horizontal: 14,
-                                          vertical: 9,
-                                        ),
-                                        child: Text(
-                                          finish,
-                                          style: TextStyle(
-                                            color: selected
-                                                ? Colors.black
-                                                : _ivory,
-                                            fontWeight:
-                                                selected
-                                                    ? FontWeight
-                                                        .w700
-                                                    : FontWeight
-                                                        .w500,
-                                            fontSize: 13,
-                                          ),
-                                        ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Container(
+                                padding:
+                                    const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  borderRadius:
+                                      BorderRadius.circular(
+                                          10),
+                                  border: Border.all(
+                                    color: _gold.withValues(
+                                        alpha: 0.35),
+                                  ),
+                                  color: Colors.black
+                                      .withValues(
+                                          alpha: 0.10),
+                                ),
+                                child:
+                                    DropdownButtonHideUnderline(
+                                  child: DropdownButton<
+                                      String>(
+                                    value: finishes.contains(
+                                            selectedFinish)
+                                        ? selectedFinish
+                                        : null,
+                                    hint: const Text(
+                                      "Select",
+                                      style: TextStyle(
+                                        color: _muted,
+                                        fontSize: 13,
                                       ),
                                     ),
+                                    isExpanded: true,
+                                    icon: const Icon(
+                                      Icons
+                                          .keyboard_arrow_down,
+                                      color: _gold,
+                                    ),
+                                    dropdownColor: const Color(
+                                        0xFF1A1A1A),
+                                    style: const TextStyle(
+                                      color: _ivory,
+                                      fontSize: 13,
+                                      fontWeight:
+                                          FontWeight.w500,
+                                    ),
+                                    items: finishes
+                                        .map((finish) =>
+                                            DropdownMenuItem<
+                                                String>(
+                                              value: finish,
+                                              child: Text(
+                                                  finish),
+                                            ))
+                                        .toList(),
+                                    onChanged: (value) {
+                                      if (value !=
+                                          null) {
+                                        _selectFinish(
+                                            value);
+                                      }
+                                    },
                                   ),
                                 ),
                               ),
-                            );
-                          }).toList(),
+                            ),
+                          ],
                         ),
 
                         const SizedBox(height: 26),
