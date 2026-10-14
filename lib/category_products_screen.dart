@@ -46,6 +46,52 @@ class _CategoryProductsScreenState
   }
 
   /// Extracts the numeric portion of a model number for
+  /// Returns true for Mortise handle categories.
+  static bool _isMortiseCategory(String category) {
+    final c = category.toLowerCase();
+    return c.contains('mortise');
+  }
+
+  /// Fixed display order for Mortise variants:
+  /// 0 = Rose Full Set, 1 = 8" Plate Full Set, 2 = 10" Plate Full Set.
+  /// Returns 999 for non-matching products (sorted after variants).
+  ///
+  /// Matching is flexible: case-insensitive, handles inch symbols
+  /// ("8\"", "8 inch", "8in"), and matches against modelNo or name.
+  /// If stored labels differ, update these patterns — do not guess.
+  static int _mortiseVariantOrder(
+      QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+    final data = doc.data();
+    final modelNo =
+        (data['modelNo']?.toString() ?? '').toLowerCase();
+    final name =
+        (data['name']?.toString() ?? '').toLowerCase();
+    final combined = '$modelNo $name';
+
+    // 1. Rose Full Set
+    if (combined.contains('rose') &&
+        combined.contains('full set')) {
+      return 0;
+    }
+    // 2. 8" Plate Full Set
+    if ((combined.contains('8"') ||
+            combined.contains('8 inch') ||
+            combined.contains('8in')) &&
+        combined.contains('plate') &&
+        combined.contains('full set')) {
+      return 1;
+    }
+    // 3. 10" Plate Full Set
+    if ((combined.contains('10"') ||
+            combined.contains('10 inch') ||
+            combined.contains('10in')) &&
+        combined.contains('plate') &&
+        combined.contains('full set')) {
+      return 2;
+    }
+    return 999;
+  }
+
   /// numerical sorting. Handles "EL 238", "EL-238", "EL238".
   /// Non-numeric models sort last.
   static int _modelNumberOf(
@@ -273,11 +319,25 @@ class _CategoryProductsScreenState
 
                         return model.contains(searchText);
                       }).toList()
-                        // Numerical ascending sort on the model
-                        // number (EL 10 < EL 99 < EL 100).
-                        ..sort((a, b) =>
-                            _modelNumberOf(a).compareTo(
-                                _modelNumberOf(b)));
+                        // Mortise category: fixed variant sequence.
+                        // Rose Full Set -> 8" Plate Full Set -> 10" Plate Full Set.
+                        // Other products follow the standard numeric sort.
+                        ..sort((a, b) {
+                          if (_isMortiseCategory(widget.category)) {
+                            final orderA =
+                                _mortiseVariantOrder(a);
+                            final orderB =
+                                _mortiseVariantOrder(b);
+                            if (orderA != orderB) {
+                              return orderA
+                                  .compareTo(orderB);
+                            }
+                          }
+                          // Numerical ascending sort on the model
+                          // number (EL 10 < EL 99 < EL 100).
+                          return _modelNumberOf(a).compareTo(
+                              _modelNumberOf(b));
+                        });
 
                       if (products.isEmpty) {
                         return const Center(
@@ -298,11 +358,11 @@ class _CategoryProductsScreenState
                             20, 4, 20, 24),
                         itemCount: products.length,
                         itemBuilder: (context, index) {
-                          final data =
-                              products[index].data()
-                                  as Map<String, dynamic>;
-                          return _productRow(context,
-                              data, widget.category);
+                          final doc = products[index];
+                          final data = doc.data()
+                              as Map<String, dynamic>;
+                          return _productRow(context, data,
+                              widget.category, doc.id);
                         },
                       );
                     },
@@ -322,6 +382,7 @@ class _CategoryProductsScreenState
     BuildContext context,
     Map<String, dynamic> data,
     String category,
+    String productId,
   ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -352,6 +413,7 @@ class _CategoryProductsScreenState
                       modelNo: data["modelNo"],
                       imageUrl: data["imageUrl"],
                       productData: data,
+                      productId: productId,
                       category: category,
                     ),
                   ),

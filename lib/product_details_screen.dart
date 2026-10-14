@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'widgets/pressable.dart';
@@ -19,7 +20,11 @@ class ProductDetailsScreen extends StatefulWidget {
   final String imageUrl;
 
   /// Full Firestore product document (may contain size-wise MRP).
+  /// Used as initial data; live updates come from [productId] stream.
   final Map<String, dynamic>? productData;
+
+  /// Firestore document ID for real-time config sync.
+  final String? productId;
 
   /// Product category (for category-wise discount).
   final String? category;
@@ -29,6 +34,7 @@ class ProductDetailsScreen extends StatefulWidget {
     required this.modelNo,
     required this.imageUrl,
     this.productData,
+    this.productId,
     this.category,
   });
 
@@ -37,8 +43,90 @@ class ProductDetailsScreen extends StatefulWidget {
       _ProductDetailsScreenState();
 }
 
+/// Inner view that holds all product detail state.
+/// Keyed by configuration so admin updates trigger a clean rebuild.
+class _ProductDetailsBody extends StatefulWidget {
+  final String modelNo;
+  final String? imageUrl;
+  final Map<String, dynamic>? productData;
+  final String? category;
+
+  const _ProductDetailsBody({
+    super.key,
+    required this.modelNo,
+    required this.imageUrl,
+    this.productData,
+    this.category,
+  });
+
+  @override
+  State<_ProductDetailsBody> createState() =>
+      _ProductDetailsBodyState();
+}
+
 class _ProductDetailsScreenState
     extends State<ProductDetailsScreen> {
+  // Real-time sync wrapper state.
+
+  /// Builds a stable key from product config.
+  static String _configKey(Map<String, dynamic>? data) {
+    if (data == null) return 'nodata';
+    final finishes = (data['finishes'] as List?)
+            ?.map((e) => e.toString())
+            .join(',') ??
+        '';
+    final sizes = (data['sizes'] as List?)
+            ?.map((e) => e is Map ? e['size'].toString() : '')
+            .join(',') ??
+        '';
+    final mrp = data['mrp']?.toString() ?? '';
+    return '$finishes|$sizes|$mrp'.hashCode.toString();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final pid = widget.productId;
+    if (pid != null && pid.isNotEmpty) {
+      return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+        stream: FirebaseFirestore.instance
+            .collection('products')
+            .doc(pid)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return const Scaffold(
+              backgroundColor: Colors.black,
+              body: Center(
+                child: Text(
+                  'Something went wrong',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            );
+          }
+          final liveData = snapshot.data?.data();
+          final effectiveData = liveData ?? widget.productData;
+          return _ProductDetailsBody(
+            key: ValueKey(_configKey(effectiveData)),
+            modelNo: widget.modelNo,
+            imageUrl: widget.imageUrl,
+            productData: effectiveData,
+            category: widget.category,
+          );
+        },
+      );
+    }
+    return _ProductDetailsBody(
+      modelNo: widget.modelNo,
+      imageUrl: widget.imageUrl,
+      productData: widget.productData,
+      category: widget.category,
+    );
+  }
+}
+
+class _ProductDetailsBodyState
+    extends State<_ProductDetailsBody> {
   // ---- Warm champagne palette (matches locked theme) ----
   static const _gold = Color(0xFFD8B36A);
   static const _goldBright = Color(0xFFF3DFAE);
