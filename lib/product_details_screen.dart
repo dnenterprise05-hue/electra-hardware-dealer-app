@@ -60,26 +60,88 @@ class _ProductDetailsScreenState
     "B.SATIN",
   ];
 
-  final Map<String, int> qty = {
-    "96 MM": 0,
-    "160 MM": 0,
-    "224 MM": 0,
-    "288 MM": 0,
-  };
+  /// Quantity per size (PCS, canonical unit). Keys determine which
+  /// size rows are displayed. Initialized from Firestore in initState.
+  final Map<String, int> qty = {};
 
-  final Map<String, int> moq = {
-    "96 MM": 48,
-    "160 MM": 32,
-    "224 MM": 12,
-    "288 MM": 10,
-  };
+  /// Effective MOQ per size in PCS (after SET→PCS conversion).
+  /// Empty = size is misconfigured and cannot be ordered.
+  final Map<String, int> moq = {};
 
-  final Map<String, int> boxQty = {
-    "96 MM": 24,
-    "160 MM": 16,
-    "224 MM": 12,
-    "288 MM": 10,
-  };
+  /// Effective Box Qty per size in PCS (after SET→PCS conversion).
+  final Map<String, int> boxQty = {};
+
+  /// Display labels per size, e.g. "MOQ : 5 SET" / "BOX QTY : 10 PCS".
+  /// Falls back to PCS formatting when no unit metadata exists.
+  final Map<String, String> _moqLabel = {};
+  final Map<String, String> _boxLabel = {};
+
+  /// Sizes with missing/invalid MOQ or Box Qty. Their + button is
+  /// disabled and a warning is shown; they are excluded from cart.
+  final Set<String> _misconfiguredSizes = {};
+
+  /// Parses an int from Firestore (int, numeric String, or null).
+  static int? _parseQtyInt(dynamic v) {
+    if (v is int) return v;
+    if (v is num) return v.toInt();
+    if (v is String) return int.tryParse(v.trim());
+    return null;
+  }
+
+  /// Builds qty/moq/boxQty maps from productData['sizes'].
+  /// Each entry: {"size": "96 MM", "moq": 48, "boxQty": 24,
+  ///   "moqUnit": "SET", "boxQtyUnit": "PCS", "pcsPerSet": 2}.
+  /// Units default to PCS; SET values are converted via pcsPerSet.
+  /// Sizes with invalid config go to _misconfiguredSizes (no silent
+  /// defaults — a misconfigured size cannot be ordered).
+  void _loadQuantityConfig() {
+    final data = widget.productData;
+    final sizes = data?['sizes'];
+    if (sizes is! List) return;
+
+    for (final s in sizes) {
+      if (s is! Map) continue;
+      final name = (s['size'] ?? '').toString().trim();
+      if (name.isEmpty) continue;
+
+      final moqRaw = _parseQtyInt(s['moq']);
+      final boxRaw = _parseQtyInt(s['boxQty']);
+      final moqUnit =
+          (s['moqUnit']?.toString() ?? 'PCS').toUpperCase();
+      final boxUnit =
+          (s['boxQtyUnit']?.toString() ?? 'PCS').toUpperCase();
+      final pcsPerSet = _parseQtyInt(s['pcsPerSet']) ?? 1;
+
+      // Validate: positive integers required; SET needs valid pcsPerSet.
+      final valid = moqRaw != null &&
+          moqRaw > 0 &&
+          boxRaw != null &&
+          boxRaw > 0 &&
+          pcsPerSet > 0 &&
+          !(moqUnit == 'SET' && s['pcsPerSet'] == null) &&
+          !(boxUnit == 'SET' && s['pcsPerSet'] == null);
+
+      if (!valid) {
+        _misconfiguredSizes.add(name);
+        qty[name] = 0;
+        // ignore: avoid_print
+        print(
+            'MOQ/BoxQty misconfigured for ${widget.modelNo} / $name');
+        continue;
+      }
+
+      final moqPcs =
+          moqRaw! * (moqUnit == 'SET' ? pcsPerSet : 1);
+      final boxPcs =
+          boxRaw! * (boxUnit == 'SET' ? pcsPerSet : 1);
+
+      qty[name] = 0;
+      moq[name] = moqPcs;
+      boxQty[name] = boxPcs;
+      _moqLabel[name] = 'MOQ : $moqRaw $moqUnit';
+      _boxLabel[name] = 'BOX QTY : $boxRaw $boxUnit';
+    }
+  }
 
   /// EL 231 MRP per PCS by finish and size (real prices).
   /// Finishes not listed here use the "remaining colours" rates.
@@ -163,6 +225,7 @@ class _ProductDetailsScreenState
   @override
   void initState() {
     super.initState();
+    _loadQuantityConfig();
     _loadPricing();
   }
 
@@ -882,6 +945,8 @@ class _ProductDetailsScreenState
                       ),
                       const SizedBox(height: 6),
                       // ---- MIDDLE: quantity controls ----
+                      // Misconfigured sizes: buttons disabled, no silent
+                      // defaults — the size cannot be ordered.
                       Row(
                         mainAxisAlignment:
                             MainAxisAlignment.spaceBetween,
@@ -889,22 +954,27 @@ class _ProductDetailsScreenState
                           _qtyButton(
                             icon: Icons.remove,
                             iconColor: _finishColor,
-                            onPressed: () {
-                              setState(() {
-                                if (qty[size] == 0) {
-                                  return;
-                                }
-                                if (qty[size] ==
-                                    moq[size]) {
-                                  qty[size] = 0;
-                                } else {
-                                  qty[size] =
-                                      qty[size]! -
-                                          boxQty[
-                                              size]!;
-                                }
-                              });
-                            },
+                            onPressed: _misconfiguredSizes
+                                    .contains(size)
+                                ? null
+                                : () {
+                                    setState(() {
+                                      if (qty[size] ==
+                                          0) {
+                                        return;
+                                      }
+                                      if (qty[size] ==
+                                          moq[size]) {
+                                        qty[size] =
+                                            0;
+                                      } else {
+                                        qty[size] =
+                                            qty[size]! -
+                                                boxQty[
+                                                    size]!;
+                                      }
+                                    });
+                                  },
                           ),
                           Text(
                             qty[size].toString(),
@@ -919,19 +989,23 @@ class _ProductDetailsScreenState
                           _qtyButton(
                             icon: Icons.add,
                             iconColor: _finishColor,
-                            onPressed: () {
-                              setState(() {
-                                if (qty[size] == 0) {
-                                  qty[size] =
-                                      moq[size]!;
-                                } else {
-                                  qty[size] =
-                                      qty[size]! +
-                                          boxQty[
-                                              size]!;
-                                }
-                              });
-                            },
+                            onPressed: _misconfiguredSizes
+                                    .contains(size)
+                                ? null
+                                : () {
+                                    setState(() {
+                                      if (qty[size] ==
+                                          0) {
+                                        qty[size] =
+                                            moq[size]!;
+                                      } else {
+                                        qty[size] =
+                                            qty[size]! +
+                                                boxQty[
+                                                    size]!;
+                                      }
+                                    });
+                                  },
                           ),
                         ],
                       ),
@@ -953,7 +1027,13 @@ class _ProductDetailsScreenState
                           children: [
                             Expanded(
                               child: Text(
-                                'BOX QTY : ${boxQty[size]} PCS',
+                                _misconfiguredSizes
+                                        .contains(
+                                            size)
+                                    ? 'QTY NOT CONFIGURED'
+                                    : (_boxLabel[
+                                            size] ??
+                                        'BOX QTY : ${boxQty[size]} PCS'),
                                 textAlign:
                                     TextAlign.center,
                                 style: TextStyle(
@@ -973,7 +1053,13 @@ class _ProductDetailsScreenState
                             ),
                             Expanded(
                               child: Text(
-                                'MOQ : ${moq[size]} PCS',
+                                _misconfiguredSizes
+                                        .contains(
+                                            size)
+                                    ? 'CONTACT ADMIN'
+                                    : (_moqLabel[
+                                            size] ??
+                                        'MOQ : ${moq[size]} PCS'),
                                 textAlign:
                                     TextAlign.center,
                                 style: TextStyle(
@@ -1000,24 +1086,28 @@ class _ProductDetailsScreenState
   }
   static Widget _qtyButton({
     required IconData icon,
-    required VoidCallback onPressed,
+    required VoidCallback? onPressed,
     Color? iconColor,
   }) {
     final ic = iconColor ?? _gold;
-    return Pressable(
-      onTap: onPressed,
-      borderRadius: BorderRadius.circular(24),
-      child: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: _gold.withValues(alpha: 0.45),
-            width: 1,
+    final disabled = onPressed == null;
+    return Opacity(
+      opacity: disabled ? 0.3 : 1.0,
+      child: Pressable(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(24),
+        child: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: _gold.withValues(alpha: 0.45),
+              width: 1,
+            ),
           ),
+          child: Icon(icon, color: ic, size: 18),
         ),
-        child: Icon(icon, color: ic, size: 18),
       ),
     );
   }
@@ -1031,6 +1121,22 @@ class _ProductDetailsScreenState
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Please select quantity."),
+        ),
+      );
+      return;
+    }
+
+    // Block misconfigured sizes: no silent defaults allowed.
+    final misconfigured = selectedSizes
+        .where((e) => _misconfiguredSizes.contains(e.key))
+        .map((e) => e.key)
+        .toList();
+    if (misconfigured.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Quantity not configured for ${misconfigured.join(", ")} — contact admin.",
+          ),
         ),
       );
       return;
