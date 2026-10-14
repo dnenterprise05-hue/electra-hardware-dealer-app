@@ -518,6 +518,8 @@ class _ProductDetailsBodyState
                                           },
                                           child: Container(
                                             height: 40,
+                                            alignment:
+                                                Alignment.center,
                                             decoration:
                                                 BoxDecoration(
                                               border: Border(
