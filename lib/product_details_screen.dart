@@ -378,7 +378,18 @@ class _ProductDetailsBodyState
     }
     final overlay = Overlay.of(context);
     _finishMenuEntry = OverlayEntry(
-      builder: (ctx) => Stack(
+      builder: (ctx) => TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0.0, end: 1.0),
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOut,
+        builder: (ctx, anim, child) => Opacity(
+          opacity: anim,
+          child: Transform.translate(
+            offset: Offset(0, 8 * (1 - anim)),
+            child: child,
+          ),
+        ),
+        child: Stack(
         children: [
           // Tap outside to dismiss.
           Positioned.fill(
@@ -411,11 +422,44 @@ class _ProductDetailsBodyState
                     filter: ImageFilter.blur(
                         sigmaX: 2.5, sigmaY: 2.5),
                     child: Container(
-                      color: Colors.black
-                          .withValues(alpha: 0.55),
-                      child: ListView(
-                        padding: EdgeInsets.zero,
-                        shrinkWrap: true,
+                      decoration: BoxDecoration(
+                        color: Colors.black
+                            .withValues(alpha: 0.12),
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.white
+                                .withValues(alpha: 0.04),
+                            Colors.transparent,
+                            Colors.transparent,
+                          ],
+                          stops: const [0.0, 0.25, 1.0],
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Champagne accent line at top (matches size cards).
+                          Container(
+                            height: 1,
+                            margin: const EdgeInsets.symmetric(
+                                horizontal: 20),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.transparent,
+                                  _gold.withValues(
+                                      alpha: 0.35),
+                                  Colors.transparent,
+                                ],
+                              ),
+                            ),
+                          ),
+                          Flexible(
+                            child: ListView(
+                              padding: EdgeInsets.zero,
+                              shrinkWrap: true,
                         children: finishes.map((finish) {
                           final isSelected =
                               finish == selectedFinish;
@@ -459,6 +503,9 @@ class _ProductDetailsBodyState
                             ),
                           );
                         }).toList(),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -467,6 +514,7 @@ class _ProductDetailsBodyState
             ),
           ),
         ],
+        ),
       ),
     );
     overlay.insert(_finishMenuEntry!);
@@ -865,7 +913,7 @@ class _ProductDetailsBodyState
                                       borderRadius:
                                           BorderRadius
                                               .circular(
-                                                  12),
+                                                  16),
                                       border:
                                           Border.all(
                                         color: _gold
@@ -879,7 +927,7 @@ class _ProductDetailsBodyState
                                       borderRadius:
                                           BorderRadius
                                               .circular(
-                                                  12),
+                                                  16),
                                       child:
                                           BackdropFilter(
                                         filter: ImageFilter
@@ -890,11 +938,36 @@ class _ProductDetailsBodyState
                                                     2.5),
                                         child:
                                             Container(
-                                          color: Colors
-                                              .black
-                                              .withValues(
-                                                  alpha:
-                                                      0.12),
+                                          decoration:
+                                              BoxDecoration(
+                                            color: Colors
+                                                .black
+                                                .withValues(
+                                                    alpha:
+                                                        0.12),
+                                            gradient:
+                                                LinearGradient(
+                                              begin: Alignment
+                                                  .topCenter,
+                                              end: Alignment
+                                                  .bottomCenter,
+                                              colors: [
+                                                Colors.white
+                                                    .withValues(
+                                                        alpha:
+                                                            0.04),
+                                                Colors
+                                                    .transparent,
+                                                Colors
+                                                    .transparent,
+                                              ],
+                                              stops: const [
+                                                0.0,
+                                                0.25,
+                                                1.0
+                                              ],
+                                            ),
+                                          ),
                                           // Stack keeps the
                                           // finish name centered
                                           // while the arrow stays
