@@ -159,6 +159,13 @@ class _ProductDetailsBodyState
   String selectedFinish = "CP";
   CartItem? existingCartItem;
 
+  /// Layer link for positioning the finish dropdown menu below
+  /// the selector card.
+  final LayerLink _finishMenuLink = LayerLink();
+
+  /// Currently displayed finish menu overlay, if open.
+  OverlayEntry? _finishMenuEntry;
+
   /// Finishes available for this product, loaded from
   /// `productData['finishes']` in initState. Falls back to
   /// the hardcoded list for legacy products without embedded finishes.
@@ -342,6 +349,12 @@ class _ProductDetailsBodyState
     _loadPricing();
   }
 
+  @override
+  void dispose() {
+    _dismissFinishMenu();
+    super.dispose();
+  }
+
   /// Loads the product-specific finish list from Firestore.
   ///
   /// The Admin Panel saves the selected finishes as `finishes`
@@ -349,6 +362,116 @@ class _ProductDetailsBodyState
   /// only those finishes — deselected finishes disappear on the next
   /// sync without requiring an app restart.
   /// Legacy products without embedded finishes keep the default list.
+  /// Dismisses the finish dropdown menu if open.
+  void _dismissFinishMenu() {
+    _finishMenuEntry?.remove();
+    _finishMenuEntry = null;
+  }
+
+  /// Shows the finish dropdown menu below the selector card.
+  /// Uses a custom overlay with true glassmorphism (BackdropFilter
+  /// over transparent background) matching the size cards.
+  void _showFinishMenu() {
+    if (_finishMenuEntry != null) {
+      _dismissFinishMenu();
+      return;
+    }
+    final overlay = Overlay.of(context);
+    _finishMenuEntry = OverlayEntry(
+      builder: (ctx) => Stack(
+        children: [
+          // Tap outside to dismiss.
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: _dismissFinishMenu,
+              child: const SizedBox.expand(),
+            ),
+          ),
+          CompositedTransformFollower(
+            link: _finishMenuLink,
+            showWhenUnlinked: false,
+            offset: const Offset(0, 52),
+            child: Material(
+              type: MaterialType.transparency,
+              child: Container(
+                constraints: const BoxConstraints(
+                  maxHeight: 240,
+                ),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: _gold.withValues(alpha: 0.28),
+                    width: 1,
+                  ),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(
+                        sigmaX: 2.5, sigmaY: 2.5),
+                    child: Container(
+                      color: Colors.black
+                          .withValues(alpha: 0.55),
+                      child: ListView(
+                        padding: EdgeInsets.zero,
+                        shrinkWrap: true,
+                        children: finishes.map((finish) {
+                          final isSelected =
+                              finish == selectedFinish;
+                          return InkWell(
+                            onTap: () {
+                              _dismissFinishMenu();
+                              _selectFinish(finish);
+                            },
+                            child: Container(
+                              padding:
+                                  const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: _gold.withValues(
+                                        alpha: 0.12),
+                                    width: 0.5,
+                                  ),
+                                ),
+                                color: isSelected
+                                    ? _gold.withValues(
+                                        alpha: 0.18)
+                                    : Colors.transparent,
+                              ),
+                              child: Text(
+                                finish,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: isSelected
+                                      ? _goldBright
+                                      : _ivory,
+                                  fontSize: 13,
+                                  fontWeight: isSelected
+                                      ? FontWeight.w700
+                                      : FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    overlay.insert(_finishMenuEntry!);
+  }
+
   /// Handles finish selection from the dropdown.
   /// Updates pricing/discount for the newly selected finish.
   Future<void> _selectFinish(String finish) async {
@@ -730,68 +853,91 @@ class _ProductDetailsBodyState
                             ),
                             const SizedBox(width: 16),
                             Expanded(
-                              child: Container(
-                                padding:
-                                    const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                ),
-                                decoration: BoxDecoration(
-                                  borderRadius:
-                                      BorderRadius.circular(
-                                          10),
-                                  border: Border.all(
-                                    color: _gold.withValues(
-                                        alpha: 0.35),
-                                  ),
-                                  color: Colors.black
-                                      .withValues(
-                                          alpha: 0.10),
-                                ),
-                                child:
-                                    DropdownButtonHideUnderline(
-                                  child: DropdownButton<
-                                      String>(
-                                    value: finishes.contains(
-                                            selectedFinish)
-                                        ? selectedFinish
-                                        : null,
-                                    hint: const Text(
-                                      "Select",
-                                      style: TextStyle(
-                                        color: _muted,
-                                        fontSize: 13,
+                              child: CompositedTransformTarget(
+                                link: _finishMenuLink,
+                                child: GestureDetector(
+                                  onTap: _showFinishMenu,
+                                  child: Container(
+                                    // Reduced height vs previous
+                                    // implementation.
+                                    height: 44,
+                                    decoration: BoxDecoration(
+                                      borderRadius:
+                                          BorderRadius
+                                              .circular(
+                                                  12),
+                                      border:
+                                          Border.all(
+                                        color: _gold
+                                            .withValues(
+                                                alpha:
+                                                    0.28),
+                                        width: 1,
                                       ),
                                     ),
-                                    isExpanded: true,
-                                    icon: const Icon(
-                                      Icons
-                                          .keyboard_arrow_down,
-                                      color: _gold,
+                                    child: ClipRRect(
+                                      borderRadius:
+                                          BorderRadius
+                                              .circular(
+                                                  12),
+                                      child:
+                                          BackdropFilter(
+                                        filter: ImageFilter
+                                            .blur(
+                                                sigmaX:
+                                                    2.5,
+                                                sigmaY:
+                                                    2.5),
+                                        child:
+                                            Container(
+                                          color: Colors
+                                              .black
+                                              .withValues(
+                                                  alpha:
+                                                      0.12),
+                                          // Stack keeps the
+                                          // finish name centered
+                                          // while the arrow stays
+                                          // right-aligned.
+                                          child: Stack(
+                                            alignment:
+                                                Alignment
+                                                    .center,
+                                            children: [
+                                              Text(
+                                                finishes.contains(
+                                                        selectedFinish)
+                                                    ? selectedFinish
+                                                    : "Select",
+                                                style:
+                                                    const TextStyle(
+                                                  color:
+                                                      _ivory,
+                                                  fontSize:
+                                                      13,
+                                                  fontWeight:
+                                                      FontWeight
+                                                          .w600,
+                                                  letterSpacing:
+                                                      0.5,
+                                                ),
+                                              ),
+                                              const Positioned(
+                                                right: 12,
+                                                child:
+                                                    Icon(
+                                                  Icons
+                                                      .keyboard_arrow_down,
+                                                  color:
+                                                      _gold,
+                                                  size: 20,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                    dropdownColor: const Color(
-                                        0xFF1A1A1A),
-                                    style: const TextStyle(
-                                      color: _ivory,
-                                      fontSize: 13,
-                                      fontWeight:
-                                          FontWeight.w500,
-                                    ),
-                                    items: finishes
-                                        .map((finish) =>
-                                            DropdownMenuItem<
-                                                String>(
-                                              value: finish,
-                                              child: Text(
-                                                  finish),
-                                            ))
-                                        .toList(),
-                                    onChanged: (value) {
-                                      if (value !=
-                                          null) {
-                                        _selectFinish(
-                                            value);
-                                      }
-                                    },
                                   ),
                                 ),
                               ),
