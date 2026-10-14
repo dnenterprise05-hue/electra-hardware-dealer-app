@@ -41,6 +41,27 @@ class ProductDetailsScreen extends StatefulWidget {
   @override
   State<ProductDetailsScreen> createState() =>
       _ProductDetailsScreenState();
+
+  /// Parses the finish list from a Firestore product document.
+  /// Returns null if no valid finishes are present (legacy fallback applies).
+  /// Pure function — testable without Firestore or widget state.
+  ///
+  /// Note: an explicitly empty list is treated the same as a missing
+  /// field (returns null → hardcoded default). The Admin Panel validates
+  /// "Select At Least One Finish" and cannot save an empty list via UI,
+  /// so empty only occurs from legacy data or manual edits. Showing the
+  /// default list is safer than showing no finishes (which would break
+  /// the finish selector and cart flow).
+  static List<String>? parseProductFinishes(
+      Map<String, dynamic>? data) {
+    final raw = data?['finishes'];
+    if (raw is! List || raw.isEmpty) return null;
+    final loaded = raw
+        .map((e) => e.toString().trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+    return loaded.isEmpty ? null : loaded;
+  }
 }
 
 /// Inner view that holds all product detail state.
@@ -81,27 +102,6 @@ class _ProductDetailsScreenState
         '';
     final mrp = data['mrp']?.toString() ?? '';
     return '$finishes|$sizes|$mrp'.hashCode.toString();
-  }
-
-  /// Parses the finish list from a Firestore product document.
-  /// Returns null if no valid finishes are present (legacy fallback applies).
-  /// Pure function — testable without Firestore or widget state.
-  ///
-  /// Note: an explicitly empty list is treated the same as a missing
-  /// field (returns null → hardcoded default). The Admin Panel validates
-  /// "Select At Least One Finish" and cannot save an empty list via UI,
-  /// so empty only occurs from legacy data or manual edits. Showing the
-  /// default list is safer than showing no finishes (which would break
-  /// the finish selector and cart flow).
-  static List<String>? parseProductFinishes(
-      Map<String, dynamic>? data) {
-    final raw = data?['finishes'];
-    if (raw is! List || raw.isEmpty) return null;
-    final loaded = raw
-        .map((e) => e.toString().trim())
-        .where((e) => e.isNotEmpty)
-        .toList();
-    return loaded.isEmpty ? null : loaded;
   }
 
   @override
