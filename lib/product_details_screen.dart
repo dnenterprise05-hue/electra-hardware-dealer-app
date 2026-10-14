@@ -47,7 +47,7 @@ class ProductDetailsScreen extends StatefulWidget {
 /// Keyed by configuration so admin updates trigger a clean rebuild.
 class _ProductDetailsBody extends StatefulWidget {
   final String modelNo;
-  final String? imageUrl;
+  final String imageUrl;
   final Map<String, dynamic>? productData;
   final String? category;
 
