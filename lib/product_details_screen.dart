@@ -389,8 +389,35 @@ class _ProductDetailsBodyState
       final box = selectorCtx.findRenderObject() as RenderBox?;
       menuWidth = box?.size.width;
     }
-    // Compact menu: ~40px per option, capped at 200px.
-    final menuHeight = math.min(finishes.length * 40.0, 200.0);
+    // Dynamic menu height: grow to fit all options using the
+    // available space below the selector, respecting the bottom
+    // safe area. Scrolls only when options exceed available space.
+    double menuHeight = finishes.length * 40.0;
+    if (selectorCtx != null) {
+      final box =
+          selectorCtx.findRenderObject() as RenderBox?;
+      if (box != null) {
+        final selectorBottom =
+            box.localToGlobal(Offset.zero).dy + box.size.height;
+        final screenHeight = MediaQuery.of(context).size.height;
+        final safeBottom =
+            MediaQuery.of(context).padding.bottom;
+        // 3px gap + 16px margin above nav bar / safe area.
+        final available = screenHeight -
+            selectorBottom -
+            3 -
+            16 -
+            safeBottom;
+        if (available > 80) {
+          menuHeight = math.min(menuHeight, available);
+        } else {
+          // Very little space: use a compact scrollable menu.
+          menuHeight = math.min(menuHeight, 160.0);
+        }
+      }
+    } else {
+      menuHeight = math.min(menuHeight, 200.0);
+    }
     _finishMenuEntry = OverlayEntry(
       builder: (ctx) => TweenAnimationBuilder<double>(
         tween: Tween(begin: 0.0, end: 1.0),
@@ -491,8 +518,6 @@ class _ProductDetailsBodyState
                                           },
                                           child: Container(
                                             height: 40,
-                                            alignment:
-                                                Alignment.center,
                                             decoration:
                                                 BoxDecoration(
                                               border: Border(
@@ -505,29 +530,77 @@ class _ProductDetailsBodyState
                                                   width: 0.5,
                                                 ),
                                               ),
+                                              // Premium champagne
+                                              // highlight for the
+                                              // selected colour.
                                               color: isSelected
                                                   ? _gold.withValues(
                                                       alpha:
-                                                          0.18)
+                                                          0.30)
                                                   : Colors
                                                       .transparent,
+                                              borderRadius: isSelected
+                                                  ? BorderRadius
+                                                      .circular(
+                                                          8)
+                                                  : null,
                                             ),
-                                            child: Text(
-                                              finish,
-                                              textAlign: TextAlign
-                                                  .center,
-                                              style: TextStyle(
-                                                color: isSelected
-                                                    ? _goldBright
-                                                    : _ivory,
-                                                fontSize: 13,
-                                                fontWeight:
-                                                    isSelected
-                                                        ? FontWeight
-                                                            .w700
-                                                        : FontWeight
-                                                            .w500,
-                                              ),
+                                            margin: isSelected
+                                                ? const EdgeInsets
+                                                    .symmetric(
+                                                    horizontal:
+                                                        6,
+                                                    vertical:
+                                                        2)
+                                                : EdgeInsets.zero,
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .center,
+                                              children: [
+                                                if (isSelected)
+                                                  const Padding(
+                                                    padding: EdgeInsets
+                                                        .only(
+                                                            right:
+                                                                8),
+                                                    child:
+                                                        Icon(
+                                                      Icons
+                                                          .check_circle,
+                                                      color:
+                                                          _goldBright,
+                                                      size: 16,
+                                                    ),
+                                                  ),
+                                                Text(
+                                                  finish,
+                                                  textAlign:
+                                                      TextAlign
+                                                          .center,
+                                                  style:
+                                                      TextStyle(
+                                                    color: isSelected
+                                                        ? const Color(
+                                                            0xFFFFF3D6)
+                                                        : _ivory,
+                                                    fontSize:
+                                                        isSelected
+                                                            ? 14
+                                                            : 13,
+                                                    fontWeight:
+                                                        isSelected
+                                                            ? FontWeight
+                                                                .w800
+                                                            : FontWeight
+                                                                .w500,
+                                                    letterSpacing:
+                                                        isSelected
+                                                            ? 0.5
+                                                            : 0,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ),
                                         );
