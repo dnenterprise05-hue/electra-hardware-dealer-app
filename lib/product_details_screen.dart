@@ -553,31 +553,11 @@ class _ProductDetailsBodyState
                                                     vertical:
                                                         2)
                                                 : EdgeInsets.zero,
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
+                                            child: Text(
+                                              finish,
+                                              textAlign:
+                                                  TextAlign
                                                       .center,
-                                              children: [
-                                                if (isSelected)
-                                                  const Padding(
-                                                    padding: EdgeInsets
-                                                        .only(
-                                                            right:
-                                                                8),
-                                                    child:
-                                                        Icon(
-                                                      Icons
-                                                          .check_circle,
-                                                      color:
-                                                          _goldBright,
-                                                      size: 16,
-                                                    ),
-                                                  ),
-                                                Text(
-                                                  finish,
-                                                  textAlign:
-                                                      TextAlign
-                                                          .center,
                                                   style:
                                                       TextStyle(
                                                     color: isSelected
@@ -600,8 +580,6 @@ class _ProductDetailsBodyState
                                                             : 0,
                                                   ),
                                                 ),
-                                              ],
-                                            ),
                                           ),
                                         );
                                       },
