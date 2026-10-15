@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'dart:ui';
+import 'utils/ordering_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -277,7 +278,21 @@ class _ProductDetailsBodyState
     final sizes = data?['sizes'];
     if (sizes is! List) return;
 
-    for (final s in sizes) {
+    // Numeric sort: 96 MM → 128 MM → ... Reselecting a size keeps
+    // its numeric position (qty map is rebuilt in sorted order).
+    final sortedSizes = List.from(sizes);
+    sortedSizes.sort((a, b) {
+      final na = DealerOrdering.sizeNumber(
+          (a is Map ? (a['size']?.toString() ?? '') : ''));
+      final nb = DealerOrdering.sizeNumber(
+          (b is Map ? (b['size']?.toString() ?? '') : ''));
+      if (na != null && nb != null) return na.compareTo(nb);
+      if (na != null) return -1;
+      if (nb != null) return 1;
+      return 0;
+    });
+
+    for (final s in sortedSizes) {
       if (s is! Map) continue;
       final name = (s['size'] ?? '').toString().trim();
       if (name.isEmpty) continue;
@@ -682,7 +697,7 @@ class _ProductDetailsBodyState
     final loaded = ProductDetailsScreen.parseProductFinishes(
         widget.productData);
     if (loaded != null) {
-      finishes = loaded;
+      finishes = DealerOrdering.sortFinishes(loaded);
       // Keep the selected finish valid for this product.
       if (!finishes.contains(selectedFinish)) {
         selectedFinish = finishes.first;

@@ -1,5 +1,7 @@
 import 'dart:ui';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'utils/ordering_helper.dart';
 import 'widgets/pressable.dart';
 import 'category_products_screen.dart';
 import 'cart_screen.dart';
@@ -25,13 +27,32 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> {
   static const _ivorySoft = Color(0xFFE4D3AC);
   static const _muted = Color(0xFFB9AC93);
 
-  static const _categories = [
+  /// Fallback categories if Firestore is unreachable.
+  /// Standard 5 in fixed order.
+  static const _fallbackCategories = [
     "Zinc Cabinet Handles",
     "Aluminium Cabinet & Door Handles",
     "Zinc Mortise Handles",
     "Kadi, Knobs & Door Stoppers",
     "Commercial Cabinet Handles",
   ];
+
+  /// Loads active categories from Firestore, ordered: 5 standard
+  /// first (fixed order), then custom alphabetically.
+  Stream<List<String>> get _categoriesStream =>
+      FirebaseFirestore.instance
+          .collection('categories')
+          .where('isActive', isEqualTo: true)
+          .snapshots()
+          .map((snap) {
+        final names = snap.docs
+            .map((d) =>
+                (d.data()['name']?.toString() ?? '').trim())
+            .where((n) => n.isNotEmpty)
+            .toList();
+        if (names.isEmpty) return _fallbackCategories;
+        return DealerOrdering.sortCategoryNames(names);
+      });
 
   @override
   Widget build(BuildContext context) {
@@ -207,15 +228,34 @@ class _PlaceOrderScreenState extends State<PlaceOrderScreen> {
 
                 // ================= FLOATING CATEGORY MENU =================
                 Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(
-                        28, 4, 28, 24),
-                    itemCount: _categories.length,
-                    itemBuilder: (context, index) {
-                      return _categoryItem(
-                        context,
-                        index + 1,
-                        _categories[index],
+                  child: StreamBuilder<List<String>>(
+                    stream: _categoriesStream,
+                    builder: (context, snapshot) {
+                      final categories =
+                          snapshot.data ??
+                              _fallbackCategories;
+                      if (snapshot.connectionState ==
+                              ConnectionState.waiting &&
+                          !snapshot.hasData) {
+                        return const Center(
+                          child:
+                              CircularProgressIndicator(),
+                        );
+                      }
+                      return ListView.builder(
+                        padding:
+                            const EdgeInsets.fromLTRB(
+                                28, 4, 28, 24),
+                        itemCount:
+                            categories.length,
+                        itemBuilder:
+                            (context, index) {
+                          return _categoryItem(
+                            context,
+                            index + 1,
+                            categories[index],
+                          );
+                        },
                       );
                     },
                   ),
