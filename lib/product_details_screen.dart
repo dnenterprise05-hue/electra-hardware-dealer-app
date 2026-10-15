@@ -105,44 +105,98 @@ class _ProductDetailsScreenState
     return '$finishes|$sizes|$mrp'.hashCode.toString();
   }
 
+  /// Cached product lookup for the Favourites flow (avoids
+  /// re-querying Firestore on every rebuild).
+  Future<QuerySnapshot<Map<String, dynamic>>>? _productLookupFuture;
+
+  /// Builds the product details with a real-time Firestore stream
+  /// for the given document ID.
+  Widget _buildWithProductStream(String pid) {
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance
+          .collection('products')
+          .doc(pid)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return const Scaffold(
+            backgroundColor: Colors.black,
+            body: Center(
+              child: Text(
+                'Something went wrong',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          );
+        }
+        final liveData = snapshot.data?.data();
+        final effectiveData = liveData ?? widget.productData;
+        return _ProductDetailsBody(
+          key: ValueKey(_configKey(effectiveData)),
+          modelNo: widget.modelNo,
+          imageUrl: widget.imageUrl,
+          productData: effectiveData,
+          category: widget.category,
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final pid = widget.productId;
     if (pid != null && pid.isNotEmpty) {
-      return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-        stream: FirebaseFirestore.instance
-            .collection('products')
-            .doc(pid)
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return const Scaffold(
-              backgroundColor: Colors.black,
-              body: Center(
-                child: Text(
-                  'Something went wrong',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            );
-          }
-          final liveData = snapshot.data?.data();
-          final effectiveData = liveData ?? widget.productData;
-          return _ProductDetailsBody(
-            key: ValueKey(_configKey(effectiveData)),
-            modelNo: widget.modelNo,
-            imageUrl: widget.imageUrl,
-            productData: effectiveData,
-            category: widget.category,
-          );
-        },
-      );
+      return _buildWithProductStream(pid);
     }
-    return _ProductDetailsBody(
-      modelNo: widget.modelNo,
-      imageUrl: widget.imageUrl,
-      productData: widget.productData,
-      category: widget.category,
+    // Favourites navigation passes only modelNo + imageUrl (no
+    // productId/productData). Resolve the Firestore document ID by
+    // modelNo so sizes load identically to the normal listing flow.
+    // Matches the listing's isActive filter; modelNo is expected to
+    // be unique per product.
+    _productLookupFuture ??= FirebaseFirestore.instance
+        .collection('products')
+        .where('modelNo', isEqualTo: widget.modelNo)
+        .where('isActive', isEqualTo: true)
+        .limit(1)
+        .get();
+    return FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      future: _productLookupFuture,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return const Scaffold(
+            backgroundColor: Colors.black,
+            body: Center(
+              child: Text(
+                'Could not load product details',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          );
+        }
+        if (snapshot.hasData) {
+          final docs = snapshot.data!.docs;
+          if (docs.isNotEmpty) {
+            return _buildWithProductStream(docs.first.id);
+          }
+          // No matching product: show explicit message instead of
+          // silently missing size cards.
+          return const Scaffold(
+            backgroundColor: Colors.black,
+            body: Center(
+              child: Text(
+                'Product not found',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          );
+        }
+        return const Scaffold(
+          backgroundColor: Colors.black,
+          body: Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+      },
     );
   }
 }
