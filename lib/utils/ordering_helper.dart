@@ -41,6 +41,61 @@ class DealerOrdering {
     return double.tryParse(match.group(1)!);
   }
 
+  /// Returns true for Mortise handle categories.
+  static bool isMortiseCategory(String? category) {
+    if (category == null) return false;
+    return category.toLowerCase().contains('mortise');
+  }
+
+  /// Fixed order for Mortise size/type variants:
+  /// 0 = ROSE FULL SET, 1 = 8" PLATE FULL SET, 2 = 10" PLATE FULL SET.
+  static int mortiseSizeOrder(String size) {
+    final s = size.toLowerCase();
+    final hasFullSet = s.contains('full set');
+    if (s.contains('rose') && hasFullSet) return 0;
+    if ((s.contains('8"') ||
+            s.contains('8 inch') ||
+            s.contains('8in') ||
+            RegExp(r'\b8\b').hasMatch(s)) &&
+        s.contains('plate') &&
+        hasFullSet) {
+      return 1;
+    }
+    if ((s.contains('10"') ||
+            s.contains('10 inch') ||
+            s.contains('10in') ||
+            RegExp(r'\b10\b').hasMatch(s)) &&
+        s.contains('plate') &&
+        hasFullSet) {
+      return 2;
+    }
+    return 999;
+  }
+
+  /// Sorts sizes for a category. Mortise uses fixed ROSE → 8" → 10"
+  /// sequence; others use numeric ascending.
+  static List<String> sortSizesForCategory(
+      List<String> sizes, String? category) {
+    if (!isMortiseCategory(category)) {
+      return sortSizes(sizes);
+    }
+    final sorted = List<String>.from(sizes);
+    sorted.sort((a, b) {
+      final ra = mortiseSizeOrder(a);
+      final rb = mortiseSizeOrder(b);
+      if (ra != rb) return ra.compareTo(rb);
+      final na = sizeNumber(a);
+      final nb = sizeNumber(b);
+      if (na != null && nb != null) {
+        return na.compareTo(nb);
+      }
+      if (na != null) return -1;
+      if (nb != null) return 1;
+      return 0;
+    });
+    return sorted;
+  }
+
   /// Sorts sizes numerically ascending; non-numeric go last.
   static List<String> sortSizes(List<String> sizes) {
     final sorted = List<String>.from(sizes);

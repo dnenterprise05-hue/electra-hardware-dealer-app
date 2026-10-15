@@ -278,18 +278,32 @@ class _ProductDetailsBodyState
     final sizes = data?['sizes'];
     if (sizes is! List) return;
 
-    // Numeric sort: 96 MM → 128 MM → ... Reselecting a size keeps
-    // its numeric position (qty map is rebuilt in sorted order).
+    // Sort: Mortise categories use fixed ROSE → 8" → 10" sequence;
+    // others use numeric order. Reselecting keeps position (qty map
+    // rebuilt in sorted order).
+    final sizeNames = sizes
+        .map((s) => s is Map
+            ? (s['size']?.toString() ?? '')
+            : '')
+        .toList();
+    final orderedNames =
+        DealerOrdering.sortSizesForCategory(
+            sizeNames, widget.category);
+    final rankByName = <String, int>{};
+    for (int i = 0; i < orderedNames.length; i++) {
+      rankByName[orderedNames[i]] = i;
+    }
     final sortedSizes = List.from(sizes);
     sortedSizes.sort((a, b) {
-      final na = DealerOrdering.sizeNumber(
-          (a is Map ? (a['size']?.toString() ?? '') : ''));
-      final nb = DealerOrdering.sizeNumber(
-          (b is Map ? (b['size']?.toString() ?? '') : ''));
-      if (na != null && nb != null) return na.compareTo(nb);
-      if (na != null) return -1;
-      if (nb != null) return 1;
-      return 0;
+      final na = a is Map
+          ? (a['size']?.toString() ?? '')
+          : '';
+      final nb = b is Map
+          ? (b['size']?.toString() ?? '')
+          : '';
+      final ra = rankByName[na] ?? 9999;
+      final rb = rankByName[nb] ?? 9999;
+      return ra.compareTo(rb);
     });
 
     for (final s in sortedSizes) {
