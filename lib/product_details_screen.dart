@@ -255,6 +255,11 @@ class _ProductDetailsBodyState
   final Map<String, String> _moqLabel = {};
   final Map<String, String> _boxLabel = {};
 
+  /// Price display unit per size: "SET" when both MOQ and Box Qty
+  /// are configured in SET (e.g. Mortise handles), else "PCS".
+  /// Display-only; prices remain per-PCS values.
+  final Map<String, String> _priceUnit = {};
+
   /// Sizes with missing/invalid MOQ or Box Qty. Their + button is
   /// disabled and a warning is shown; they are excluded from cart.
   final Set<String> _misconfiguredSizes = {};
@@ -347,6 +352,8 @@ class _ProductDetailsBodyState
       boxQty[name] = boxPcs;
       _moqLabel[name] = 'MOQ : $moqRaw $moqUnit';
       _boxLabel[name] = 'BOX QTY : $boxRaw $boxUnit';
+      _priceUnit[name] =
+          (moqUnit == 'SET' && boxUnit == 'SET') ? 'SET' : 'PCS';
     }
   }
 
@@ -1439,7 +1446,8 @@ class _ProductDetailsBodyState
                                         ),
                                       ),
                                       TextSpan(
-                                        text: ' / PCS',
+                                        text:
+                                            ' / ${_priceUnit[size] ?? 'PCS'}',
                                         style:
                                             TextStyle(
                                           fontSize: 14,
