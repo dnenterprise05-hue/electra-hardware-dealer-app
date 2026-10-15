@@ -723,6 +723,10 @@ class _ProductDetailsBodyState
       if (!finishes.contains(selectedFinish)) {
         selectedFinish = finishes.first;
       }
+    } else {
+      // No finishes configured: hide the COLOUR selector.
+      // selectedFinish stays at default for price/cart compatibility.
+      finishes = [];
     }
   }
 
@@ -1057,12 +1061,11 @@ class _ProductDetailsBodyState
                           ),
                         ),
 
-                        const SizedBox(height: 24),
-
                         // ---------- COLOUR ----------
-                        // Compact horizontal finish selector — one
-                        // dropdown replacing the multi-chip Wrap.
-                        // Options come from Firestore via `finishes`.
+                        // Shown only when the product has finishes
+                        // configured. Hidden for 3-field bulk imports.
+                        if (finishes.isNotEmpty) ...[
+                          const SizedBox(height: 24),
                         Row(
                           children: [
                             const Text(
@@ -1193,6 +1196,7 @@ class _ProductDetailsBodyState
                             ),
                           ],
                         ),
+                        ],
 
                         const SizedBox(height: 26),
 
