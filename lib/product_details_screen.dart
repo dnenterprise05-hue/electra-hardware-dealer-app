@@ -227,17 +227,9 @@ class _ProductDetailsBodyState
   OverlayEntry? _finishMenuEntry;
 
   /// Finishes available for this product, loaded from
-  /// `productData['finishes']` in initState. Falls back to
-  /// the hardcoded list for legacy products without embedded finishes.
-  List<String> finishes = [
-    "CP",
-    "SATIN",
-    "ANTIQUE",
-    "GOLD",
-    "ROSEGOLD",
-    "Z.BLACK",
-    "B.SATIN",
-  ];
+  /// `productData['finishes']` in initState. Empty when the product
+  /// has no finishes configured — the COLOUR card is hidden then.
+  List<String> finishes = [];
 
   /// Quantity per size (PCS, canonical unit). Keys determine which
   /// size rows are displayed. Initialized from Firestore in initState.
@@ -442,6 +434,19 @@ class _ProductDetailsBodyState
     _loadFinishes();
     _loadQuantityConfig();
     _loadPricing();
+  }
+
+  @override
+  void didUpdateWidget(covariant _ProductDetailsBody oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Reload finishes if the product data changed (e.g. live Firestore
+    // update). The ValueKey usually recreates state, but this covers
+    // cases where the widget is reused with new data.
+    if (oldWidget.productData != widget.productData) {
+      _loadFinishes();
+      _loadQuantityConfig();
+      _loadPricing();
+    }
   }
 
   @override
