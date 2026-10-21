@@ -49,7 +49,22 @@
       height: auto;
     }
     #loading.hidden { opacity: 0; pointer-events: none; }
+    .eh-splash-seen #loading {
+      display: none;
+    }
   </style>
+  <script>
+    // Show the HTML logo screen only once per session. The Flutter
+    // service-worker stub may reload the page once during a version
+    // migration; without this guard the logo would visibly repeat.
+    try {
+      if (sessionStorage.getItem('ehSplashShown') === '1') {
+        document.documentElement.classList.add('eh-splash-seen');
+      } else {
+        sessionStorage.setItem('ehSplashShown', '1');
+      }
+    } catch (e) { /* storage unavailable: keep default behavior */ }
+  </script>
 
   <title>Electra Hardware</title>
   <link rel="manifest" href="manifest.json">
