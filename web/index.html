@@ -54,11 +54,17 @@
     }
   </style>
   <script>
-    // Show the HTML logo screen only once per session. The Flutter
-    // service-worker stub may reload the page once during a version
-    // migration; without this guard the logo would visibly repeat.
+    // Show the HTML logo screen only once per session, and not at
+    // all when launched installed: the WebAPK's own launch splash
+    // (app icon on the manifest background_color) has already shown
+    // the logo before this page loads. The Flutter service-worker
+    // stub may also reload the page once during a version
+    // migration; without this guard the logo would repeat.
     try {
-      if (sessionStorage.getItem('ehSplashShown') === '1') {
+      var standalone =
+        window.matchMedia('(display-mode: standalone)').matches ||
+        window.navigator.standalone === true;
+      if (standalone || sessionStorage.getItem('ehSplashShown') === '1') {
         document.documentElement.classList.add('eh-splash-seen');
       } else {
         sessionStorage.setItem('ehSplashShown', '1');
